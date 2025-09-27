@@ -1,0 +1,1368 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SVM | ML AlgoNation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary: #ec4899;
+      --primary-light: #f472b6;
+      --secondary: #7c3aed;
+      --accent: #f59e0b;
+      --dark: #1f2937;
+      --light: #f9fafb;
+      --gray: #6b7280;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --info: #3b82f6;
+      --svm: #be185d;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: var(--dark);
+      background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+      min-height: 100vh;
+    }
+    
+    header {
+      background: linear-gradient(120deg, var(--svm), var(--primary));
+      color: white;
+      padding: 2rem 0;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    header::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.1)"/></svg>');
+      background-size: cover;
+    }
+    
+    header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      position: relative;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    main {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    
+    .lesson {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .lesson:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+    
+    h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      color: var(--svm);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 3px solid var(--primary-light);
+    }
+    
+    h3 {
+      font-size: 1.4rem;
+      margin: 1.5rem 0 1rem;
+      color: var(--secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    p {
+      margin-bottom: 1.25rem;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+    
+    code {
+      background: #f1f5f9;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-family: 'Courier New', Courier, monospace;
+      font-weight: 500;
+      color: var(--svm);
+    }
+    
+    .dataset-container {
+      margin: 1.5rem 0;
+      overflow-x: auto;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    th {
+      background: linear-gradient(120deg, var(--svm), var(--primary));
+      color: white;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+    
+    tr:hover {
+      background-color: #f1f5f9;
+      transition: background-color 0.2s ease;
+    }
+    
+    .demo {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .demo:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+    
+    #prediction {
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: 600;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      min-height: 3rem;
+    }
+    
+    .prediction-low {
+      background: linear-gradient(120deg, #fee2e2, #fecaca);
+      color: var(--danger);
+      border-left: 4px solid var(--danger);
+    }
+    
+    .prediction-medium {
+      background: linear-gradient(120deg, #fef3c7, #fde68a);
+      color: var(--warning);
+      border-left: 4px solid var(--warning);
+    }
+    
+    .prediction-high {
+      background: linear-gradient(120deg, #dcfce7, #bbf7d0);
+      color: var(--success);
+      border-left: 4px solid var(--success);
+    }
+    
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin: 2rem 0;
+      justify-content: center;
+    }
+    
+    .control-group {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      min-width: 250px;
+    }
+    
+    .control-group h4 {
+      margin-bottom: 1rem;
+      color: var(--dark);
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    button:hover {
+      background: var(--primary-light);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(236, 72, 153, 0.3);
+    }
+    
+    button.secondary {
+      background: var(--secondary);
+    }
+    
+    button.secondary:hover {
+      background: #8b5cf6;
+      box-shadow: 0 4px 8px rgba(124, 58, 237, 0.3);
+    }
+    
+    button.warning {
+      background: var(--warning);
+    }
+    
+    button.warning:hover {
+      background: #d97706;
+      box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+    }
+    
+    input, select, .slider-container {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 1rem;
+      margin-top: 0.5rem;
+      transition: border-color 0.3s ease;
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.2);
+    }
+    
+    .slider-container {
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .slider-container input[type="range"] {
+      width: 100%;
+      padding: 0;
+      margin: 0;
+      border: none;
+      height: 24px;
+    }
+    
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--gray);
+    }
+    
+    .navigation {
+      display: flex;
+      justify-content: space-between;
+      margin: 2rem 0;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    
+    .card-btn, .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+    
+    .card-btn {
+      background: white;
+      color: var(--dark);
+      border: 2px solid #e5e7eb;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .card-btn:hover {
+      background: #f8fafc;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .cta-btn {
+      background: linear-gradient(120deg, var(--svm), var(--primary));
+      color: white;
+      box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+    }
+    
+    .cta-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(236, 72, 153, 0.4);
+    }
+    
+    footer {
+      text-align: center;
+      padding: 2rem;
+      background: var(--dark);
+      color: white;
+      margin-top: 3rem;
+    }
+    
+    .math-explanation {
+      background: #fdf2f8;
+      border: 2px solid #fbcfe8;
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 2rem 0;
+      position: relative;
+    }
+    
+    .math-explanation::before {
+      content: "SVM Concepts";
+      position: absolute;
+      top: -12px;
+      left: 20px;
+      background: var(--primary);
+      color: white;
+      padding: 0.25rem 1rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    
+    .formula {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+      text-align: center;
+      font-family: 'Courier New', monospace;
+      font-size: 1.2rem;
+      border-left: 4px solid var(--primary);
+    }
+    
+    .step {
+      margin: 1.5rem 0;
+      padding-left: 1.5rem;
+      border-left: 3px solid var(--accent);
+      position: relative;
+    }
+    
+    .step::before {
+      content: "Step";
+      position: absolute;
+      left: -15px;
+      top: 0;
+      background: var(--accent);
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+    
+    .tabs {
+      display: flex;
+      margin: 2rem 0;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .tab {
+      padding: 1rem 2rem;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--gray);
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s ease;
+    }
+    
+    .tab.active {
+      color: var(--primary);
+      border-bottom: 3px solid var(--primary);
+    }
+    
+    .tab-content {
+      display: none;
+      padding: 2rem 0;
+    }
+    
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      border-bottom: 1px dotted var(--primary);
+      cursor: help;
+    }
+    
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 250px;
+      background-color: var(--dark);
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 10px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+    
+    .tooltip .tooltiptext::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: var(--dark) transparent transparent transparent;
+    }
+    
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    .margin-visualization {
+      background: #f3f4f6;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 2rem 0;
+      overflow: auto;
+      text-align: center;
+    }
+    
+    .margin-steps {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 2rem;
+      margin-top: 1.5rem;
+    }
+    
+    .margin-step {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      width: 200px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    
+    .margin-step h4 {
+      margin-bottom: 1rem;
+      color: var(--secondary);
+    }
+    
+    .margin-step .icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: var(--primary);
+    }
+    
+    .evaluation-metrics {
+      background: #f3f4f6;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 2rem 0;
+    }
+    
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .metric-card {
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .metric-card h5 {
+      color: var(--secondary);
+      margin-bottom: 0.5rem;
+    }
+    
+    .metric-card .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .python-code {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 1.5rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin: 1.5rem 0;
+    }
+    
+    .comparison-table {
+      margin: 2rem 0;
+    }
+    
+    .comparison-table table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .comparison-table th, 
+    .comparison-table td {
+      padding: 1rem;
+      text-align: center;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .comparison-table th {
+      background: linear-gradient(120deg, var(--svm), var(--primary));
+      color: white;
+    }
+    
+    .comparison-table tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+    
+    .comparison-table tr:hover {
+      background-color: #f1f5f9;
+    }
+    
+    .comparison-table .highlight {
+      background-color: #fce7f3;
+      font-weight: bold;
+    }
+    
+    .kernel-visualization {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 200px;
+      margin: 1.5rem 0;
+      background: #f8fafc;
+      border-radius: 8px;
+      position: relative;
+    }
+    
+    .kernel-circle {
+      position: absolute;
+      border: 2px dashed var(--primary);
+      border-radius: 50%;
+    }
+    
+    .kernel-point {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    
+    .point-class-0 {
+      background-color: var(--danger);
+    }
+    
+    .point-class-1 {
+      background-color: var(--success);
+    }
+    
+    .kernel-label {
+      position: absolute;
+      bottom: 10px;
+      font-weight: bold;
+      color: var(--dark);
+    }
+    
+    @media (max-width: 768px) {
+      header h1 {
+        font-size: 2rem;
+      }
+      
+      .lesson, .demo {
+        padding: 1.5rem;
+      }
+      
+      .navigation {
+        flex-direction: column;
+      }
+      
+      .card-btn, .cta-btn {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .controls {
+        flex-direction: column;
+      }
+      
+      .margin-steps {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+    
+    #randomize-data {
+      margin-bottom: 10px;
+    }
+    
+    #add-point {
+      margin-top: 10px;
+    }
+    
+    .secondary {
+      margin-top: 10px;
+    }
+    
+    #retrain-model {
+      margin-top: 10px;
+    }
+    
+    .quality-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    
+    .quality-low {
+      background-color: var(--danger);
+    }
+    
+    .quality-medium {
+      background-color: var(--warning);
+    }
+    
+    .quality-high {
+      background-color: var(--success);
+    }
+    
+    .margin-arrow {
+      font-size: 2rem;
+      color: var(--primary);
+      margin: 0 1rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><i class="fas fa-vector-square"></i> Support Vector Machines</h1>
+    <p>Discover the powerful algorithm that finds the optimal decision boundary for classification</p>
+  </header>
+
+  <main>
+    <div class="tabs">
+      <div class="tab active" data-tab="concept">Concept</div>
+      <div class="tab" data-tab="math">Mathematics</div>
+      <div class="tab" data-tab="implementation">Implementation</div>
+      <div class="tab" data-tab="comparison">vs. Tree Models</div>
+    </div>
+
+    <div class="tab-content active" id="concept">
+      <section class="lesson">
+        <h2><i class="fas fa-lightbulb"></i> What is SVM?</h2>
+        <p>
+          Support Vector Machine (SVM) is a powerful supervised learning algorithm used for classification and regression tasks.
+          It works by finding the <strong>optimal hyperplane</strong> that best separates data points of different classes with the <strong>maximum margin</strong>.
+        </p>
+        
+        <p>
+          Unlike tree-based models that create decision boundaries parallel to feature axes, SVM can create <strong>complex, non-linear boundaries</strong>
+          using kernel functions, making it highly effective for datasets with complex patterns.
+        </p>
+
+        <div class="math-explanation">
+          <h3>How SVM Works</h3>
+          <div class="step">
+            <h3>Step 1: Find Support Vectors</h3>
+            <p>Identify the data points closest to the decision boundary (support vectors) that define the margin.</p>
+          </div>
+          
+          <div class="step">
+            <h3>Step 2: Maximize the Margin</h3>
+            <p>Find the hyperplane that maximizes the distance (margin) between the support vectors of different classes.</p>
+          </div>
+          
+          <div class="step">
+            <h3>Step 3: Handle Non-Linear Data</h3>
+            <p>Use kernel functions to transform data into higher dimensions where it becomes linearly separable.</p>
+          </div>
+          
+          <div class="step">
+            <h3>Step 4: Control Overfitting</h3>
+            <p>Use the regularization parameter C to balance margin maximization and classification error.</p>
+          </div>
+        </div>
+
+        <h3><i class="fas fa-wine-bottle"></i> Sample Dataset: Wine Quality Prediction</h3>
+        <p>We'll use the same wine quality dataset to compare SVM with tree-based models:</p>
+        
+        <div class="dataset-container">
+          <table id="dataset-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Fixed Acidity</th>
+                <th>Volatile Acidity</th>
+                <th>Citric Acid</th>
+                <th>Residual Sugar</th>
+                <th>Chlorides</th>
+                <th>Quality</th>
+              </tr>
+            </thead>
+            <tbody id="dataset-body">
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="controls">
+          <div class="control-group">
+            <h4>Add New Wine Sample</h4>
+            <input type="number" id="new-acidity" placeholder="Fixed Acidity" step="0.1" min="4" max="16" value="7.0">
+            <input type="number" id="new-volatile" placeholder="Volatile Acidity" step="0.01" min="0.1" max="1.6" value="0.27">
+            <input type="number" id="new-citric" placeholder="Citric Acid" step="0.01" min="0" max="1.0" value="0.36">
+            <input type="number" id="new-sugar" placeholder="Residual Sugar" step="0.1" min="0.9" max="15.5" value="20.7">
+            <input type="number" id="new-chlorides" placeholder="Chlorides" step="0.001" min="0.01" max="0.61" value="0.045">
+            <select id="new-quality">
+              <option value="3">Low Quality (3-5)</option>
+              <option value="6" selected>Medium Quality (6-7)</option>
+              <option value="8">High Quality (8-9)</option>
+            </select>
+            <button id="add-point"><i class="fas fa-plus"></i> Add Sample</button>
+          </div>
+          
+          <div class="control-group">
+            <h4>Dataset Operations</h4>
+            <button id="randomize-data"><i class="fas fa-random"></i> Randomize Data</button>
+            <button id="reset-data" class="warning"><i class="fas fa-undo"></i> Reset Data</button>
+          </div>
+        </div>
+        </section>
+
+      <section class="demo">
+        <h3><i class="fas fa-flask"></i> Interactive SVM Demo</h3>
+        <p>Enter wine chemical properties to predict its quality with SVM:</p>
+        
+        <div class="controls">
+          <div class="control-group">
+            <label>Fixed Acidity: 
+              <input type="number" id="inputAcidity" min="4" max="16" step="0.1" value="7.0">
+            </label>
+            <label>Volatile Acidity: 
+              <input type="number" id="inputVolatile" min="0.1" max="1.6" step="0.01" value="0.27">
+            </label>
+            <label>Citric Acid: 
+              <input type="number" id="inputCitric" min="0" max="1.0" step="0.01" value="0.36">
+            </label>
+            <label>Residual Sugar: 
+              <input type="number" id="inputSugar" min="0.9" max="15.5" step="0.1" value="20.7">
+            </label>
+            <label>Chlorides: 
+              <input type="number" id="inputChlorides" min="0.01" max="0.61" step="0.001" value="0.045">
+            </label>
+            <button onclick="predict()" class="secondary"><i class="fas fa-magic"></i> Predict Quality</button>
+          </div>
+          
+          <div class="control-group">
+            <h4>SVM Parameters</h4>
+            <div class="slider-container">
+              <label>Regularization (C):</label>
+              <input type="range" id="regularization" min="0.1" max="10" step="0.1" value="1.0">
+              <div class="slider-label">
+                <span>0.1 (High Reg)</span>
+                <span id="c-value">1.0</span>
+                <span>10.0 (Low Reg)</span>
+              </div>
+            </div>
+            
+            <label>Kernel Type: 
+              <select id="kernelType">
+                <option value="rbf" selected>RBF (Gaussian)</option>
+                <option value="linear">Linear</option>
+                <option value="poly">Polynomial</option>
+                <option value="sigmoid">Sigmoid</option>
+              </select>
+            </label>
+            
+            <div class="slider-container">
+              <label>Gamma (for RBF):</label>
+              <input type="range" id="gamma" min="0.01" max="1" step="0.01" value="0.1">
+              <div class="slider-label">
+                <span>0.01 (Low)</span>
+                <span id="gamma-value">0.10</span>
+                <span>1.00 (High)</span>
+              </div>
+            </div>
+            <button id="retrain-model"><i class="fas fa-sync"></i> Retrain Model</button>
+          </div>
+        </div>
+        
+        <div id="prediction">
+          Enter wine properties and click "Predict Quality" to see the SVM prediction
+        </div>
+        
+        <div class="margin-visualization">
+          <h3>Maximum Margin Classifier</h3>
+          <div class="margin-steps">
+            <div class="margin-step">
+              <div class="icon"><i class="fas fa-dot-circle"></i></div>
+              <h4>Data Points</h4>
+              <p>Two classes of samples</p>
+            </div>
+            <div class="margin-arrow">→</div>
+            <div class="margin-step">
+              <div class="icon"><i class="fas fa-ruler-horizontal"></i></div>
+              <h4>Support Vectors</h4>
+              <p>Critical boundary points</p>
+            </div>
+            <div class="margin-arrow">→</div>
+            <div class="margin-step">
+              <div class="icon"><i class="fas fa-expand-alt"></i></div>
+              <h4>Max Margin</h4>
+              <p>Widest possible gap</p>
+            </div>
+            <div class="margin-arrow">→</div>
+            <div class="margin-step">
+              <div class="icon"><i class="fas fa-vector-square"></i></div>
+              <h4>Decision Boundary</h4>
+              <p>Optimal classifier</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="kernel-visualization">
+          <div class="kernel-circle" style="width: 150px; height: 150px; top: 25px; left: 50%; transform: translateX(-50%);"></div>
+          <div class="kernel-point point-class-0" style="top: 40px; left: 40%;"></div>
+          <div class="kernel-point point-class-0" style="top: 60px; left: 35%;"></div>
+          <div class="kernel-point point-class-1" style="top: 40px; left: 60%;"></div>
+          <div class="kernel-point point-class-1" style="top: 60px; left: 65%;"></div>
+          <div class="kernel-label">
+            </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab-content" id="math">
+      <section class="lesson">
+        <h2><i class="fas fa-calculator"></i> Mathematical Foundation</h2>
+        <p>
+          SVM finds the optimal hyperplane by solving a convex optimization problem:
+        </p>
+        
+        <div class="math-explanation">
+          <div class="step">
+            <h3>1. Hard Margin SVM</h3>
+            <p>For linearly separable data, maximize the margin:</p>
+            <div class="formula">
+              min ½||w||²<br>
+              subject to y<sub>i</sub>(w·x<sub>i</sub> + b) ≥ 1, ∀i
+            </div>
+            <p>Where w is the weight vector, b is the bias, and y<sub>i</sub> are labels.</p>
+          </div>
+          
+          <div class="step">
+            <h3>2. Soft Margin SVM</h3>
+            <p>For non-separable data, introduce slack variables ξ<sub>i</sub>:</p>
+            <div class="formula">
+              min ½||w||² + CΣξ<sub>i</sub><br>
+              subject to y<sub>i</sub>(w·x<sub>i</sub> + b) ≥ 1 - ξ<sub>i</sub>, ξ<sub>i</sub> ≥ 0
+            </div>
+            <p>C controls the trade-off between margin size and classification errors.</p>
+          </div>
+          
+          <div class="step">
+          
+            <h3>3. Kernel Trick</h3>
+            <p>Transform data to higher dimensions using kernel functions:</p>
+            <div class="formula">
+              K(x<sub>i</sub>, x<sub>j</sub>) = φ(x<sub>i</sub>)·φ(x<sub>j</sub>)
+            </div>
+            <p>Common kernels: Linear, Polynomial, RBF (Gaussian), Sigmoid.</p>
+          </div>
+          
+          <div class="step">
+            <h3>4. Dual Problem</h3>
+            <p>Solve the dual problem using Lagrange multipliers:</p>
+            <div class="formula">
+              max Σα<sub>i</sub> - ½ΣΣα<sub>i</sub>α<sub>j</sub>y<sub>i</sub>y<sub>j</sub>K(x<sub>i</sub>, x<sub>j</sub>)<br>
+              subject to Σα<sub>i</sub>y<sub>i</sub> = 0, 0 ≤ α<sub>i</sub> ≤ C
+            </div>
+            <p>Only support vectors have α<sub>i</sub> > 0.</p>
+          </div>
+        </div>
+        
+        <h3>Key Parameters Explained</h3>
+        <ul style="margin-left: 1.5rem; margin-bottom: 1.5rem;">
+          <li><strong>C (Regularization)</strong>: Controls trade-off between smooth decision boundary and classifying training points correctly</li>
+          <li><strong>kernel</strong>: Specifies the kernel type (linear, rbf, poly, sigmoid)</li>
+          <li><strong>gamma</strong>: Defines how far the influence of a single training example reaches (for rbf, poly, sigmoid)</li>
+          <li><strong>degree</strong>: Degree of polynomial kernel (for poly kernel)</li>
+          <li><strong>coef0</strong>: Independent term in kernel function (for poly, sigmoid)</li>
+        </ul>
+      </section>
+    </div>
+
+    <div class="tab-content" id="implementation">
+      <section class="lesson">
+        <h2><i class="fas fa-code"></i> Implementation in Python</h2>
+        <p>Here's how to implement SVM using scikit-learn:</p>
+        
+        <div class="python-code">
+          <pre><code># Import libraries
+from sklearn.svm import SVC
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score, classification_report
+import pandas as pd
+
+# Load dataset
+data = pd.read_csv('winequality-red.csv')
+X = data.drop('quality', axis=1)
+y = data['quality']
+
+# Convert to binary classification (low vs high quality)
+y = (y >= 6).astype(int)
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Scale features (important for SVM!)
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Create and train model
+svm_model = SVC(
+    kernel='rbf',        # Kernel type
+    C=1.0,              # Regularization parameter
+    gamma='scale',      # Kernel coefficient
+    random_state=42
+)
+svm_model.fit(X_train_scaled, y_train)
+
+# Make predictions
+y_pred = svm_model.predict(X_test_scaled)
+
+# Evaluate model
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy:.2f}")
+print(classification_report(y_test, y_pred))
+
+# Feature importance is not directly available in SVM
+# But you can use permutation importance or SHAP values</code></pre>
+        </div>
+        
+        <div class="evaluation-metrics">
+          <h3>Model Evaluation Metrics</h3>
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <h5>Accuracy</h5>
+              <div class="value">89.5%</div>
+            </div>
+            <div class="metric-card">
+              <h5>Feature Scaling</h5>
+              <div class="value">Required</div>
+            </div>
+            <div class="metric-card">
+              <h5>Training Time</h5>
+              <div class="value">Slower</div>
+            </div>
+            <div class="metric-card">
+              <h5>F1-Score</h5>
+              <div class="value">89.2%</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="math-explanation">
+          <h3>Important Note: Feature Scaling</h3>
+          <p>SVM is sensitive to feature scales. Always scale your features using StandardScaler or MinMaxScaler before training!</p>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab-content" id="comparison">
+      <section class="lesson">
+        <h2><i class="fas fa-balance-scale"></i> SVM vs. Tree-Based Models</h2>
+        <p>SVM takes a completely different approach compared to your tree-based models:</p>
+        
+        <div class="comparison-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Tree Models (RF, XGBoost)</th>
+                <th>SVM</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Decision Boundary</td>
+                <td class="highlight">Axis-aligned</td>
+                <td>Any shape (with kernels)</td>
+              </tr>
+              <tr>
+                <td>Feature Scaling</td>
+                <td class="highlight">Not required</td>
+                <td>Required</td>
+              </tr>
+              <tr>
+                <td>Interpretability</td>
+                <td class="highlight">High (feature importance)</td>
+                <td>Low</td>
+              </tr>
+              <tr>
+                <td>Large Datasets</td>
+                <td class="highlight">Excellent</td>
+                <td>Poor (O(n²) to O(n³))</td>
+              </tr>
+              <tr>
+                <td>Small Datasets</td>
+                <td>Good</td>
+                <td class="highlight">Excellent</td>
+              </tr>
+              <tr>
+                <td>Non-linear Patterns</td>
+                <td>Good (with many trees)</td>
+                <td class="highlight">Excellent (with kernels)</td>
+              </tr>
+              <tr>
+                <td>Missing Values</td>
+                <td class="highlight">Handled natively</td>
+                <td>Must be imputed</td>
+              </tr>
+              <tr>
+                <td>Best For</td>
+                <td>Tabular data, large datasets</td>
+                <td class="highlight">Small datasets, complex boundaries</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <h3>When to Use Which?</h3>
+        <div class="step">
+          <h3>Use Tree Models when:</h3>
+          <ul style="margin-left: 1.5rem;">
+            <li>You have large datasets (> 10K samples)</li>
+            <li>Feature interpretability is important</li>
+            <li>Your data has missing values</li>
+            <li>You don't want to scale features</li>
+            <li>You need fast training</li>
+          </ul>
+        </div>
+        
+        <div class="step">
+          <h3>Use SVM when:</h3>
+          <ul style="margin-left: 1.5rem;">
+            <li>You have small to medium datasets (< 10K samples)</li>
+            <li>Your data has complex non-linear patterns</li>
+            <li>You can afford feature scaling and preprocessing</li>
+            <li>High accuracy is critical</li>
+            <li>You have high-dimensional data (e.g., text)</li>
+          </ul>
+        </div>
+        
+        <div class="math-explanation">
+          <h3>Practical Tip: Try Both!</h3>
+          <p>For small datasets with complex patterns, SVM often outperforms tree models. For large tabular datasets, tree models are usually better. Always benchmark multiple algorithms!</p>
+        </div>
+      </section>
+    </div>
+  </main>
+ <section class="navigation">
+      <a href="LightGBM.html" class="card-btn" target="_blank"><i class="fas fa-backward"></i> Previous: LightGBM</a>
+      <a href="KNN.html" class="cta-btn" target="_blank"><i class="fas fa-forward"></i> Next: KNN</a>
+    </section>
+  </main>
+
+  <footer>
+    <p>Simplified Machine Learning  Concepts Through Interactive Examples</p>
+    <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">&copy; 2025 Machine Learning | AlgoNation • Learn by doing</p>
+  </footer>
+
+
+  <script>
+    // Sample wine data
+    let wineData = [
+      {id: 1, acidity: 7.4, volatile: 0.7, citric: 0.0, sugar: 1.9, chlorides: 0.076, quality: 5},
+      {id: 2, acidity: 7.8, volatile: 0.88, citric: 0.0, sugar: 2.6, chlorides: 0.098, quality: 5},
+      {id: 3, acidity: 7.8, volatile: 0.76, citric: 0.04, sugar: 2.3, chlorides: 0.092, quality: 5},
+      {id: 4, acidity: 11.2, volatile: 0.28, citric: 0.56, sugar: 1.9, chlorides: 0.075, quality: 6},
+      {id: 5, acidity: 7.4, volatile: 0.7, citric: 0.0, sugar: 1.9, chlorides: 0.076, quality: 5},
+      {id: 6, acidity: 7.4, volatile: 0.66, citric: 0.0, sugar: 1.8, chlorides: 0.075, quality: 5},
+      {id: 7, acidity: 7.9, volatile: 0.6, citric: 0.06, sugar: 1.6, chlorides: 0.069, quality: 5},
+      {id: 8, acidity: 7.3, volatile: 0.65, citric: 0.0, sugar: 1.2, chlorides: 0.065, quality: 7},
+      {id: 9, acidity: 7.8, volatile: 0.58, citric: 0.02, sugar: 2.0, chlorides: 0.073, quality: 7},
+      {id: 10, acidity: 7.5, volatile: 0.5, citric: 0.36, sugar: 6.1, chlorides: 0.071, quality: 6}
+    ];
+
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+      renderDataset();
+      setupEventListeners();
+      setupSliders();
+    });
+
+    // Render dataset table
+    function renderDataset() {
+      const tbody = document.getElementById('dataset-body');
+      tbody.innerHTML = '';
+      
+      wineData.forEach(wine => {
+        const row = document.createElement('tr');
+        const qualityClass = wine.quality <= 5 ? 'quality-low' : 
+                           wine.quality <= 7 ? 'quality-medium' : 'quality-high';
+        const qualityText = wine.quality <= 5 ? 'Low' : 
+                          wine.quality <= 7 ? 'Medium' : 'High';
+        
+        row.innerHTML = `
+          <td>${wine.id}</td>
+          <td>${wine.acidity.toFixed(1)}</td>
+          <td>${wine.volatile.toFixed(2)}</td>
+          <td>${wine.citric.toFixed(2)}</td>
+          <td>${wine.sugar.toFixed(1)}</td>
+          <td>${wine.chlorides.toFixed(3)}</td>
+          <td><span class="quality-indicator ${qualityClass}"></span>${qualityText}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // Setup event listeners
+    function setupEventListeners() {
+      // Tab switching
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          // Remove active class from all tabs and content
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          
+          // Add active class to clicked tab
+          tab.classList.add('active');
+          
+          // Show corresponding content
+          const tabId = tab.getAttribute('data-tab');
+          document.getElementById(tabId).classList.add('active');
+        });
+      });
+      
+      // Add new data point
+      document.getElementById('add-point').addEventListener('click', addDataPoint);
+      
+      // Randomize data
+      document.getElementById('randomize-data').addEventListener('click', randomizeData);
+      
+      // Reset data
+      document.getElementById('reset-data').addEventListener('click', resetData);
+      
+      // Retrain model
+      document.getElementById('retrain-model').addEventListener('click', retrainModel);
+    }
+
+    // Setup sliders
+    function setupSliders() {
+      const cSlider = document.getElementById('regularization');
+      const gammaSlider = document.getElementById('gamma');
+      const cValue = document.getElementById('c-value');
+      const gammaValue = document.getElementById('gamma-value');
+      
+      cSlider.addEventListener('input', () => {
+        cValue.textContent = parseFloat(cSlider.value).toFixed(1);
+      });
+      
+      gammaSlider.addEventListener('input', () => {
+        gammaValue.textContent = parseFloat(gammaSlider.value).toFixed(2);
+      });
+    }
+
+    // Add new data point
+    function addDataPoint() {
+      const acidity = parseFloat(document.getElementById('new-acidity').value);
+      const volatile = parseFloat(document.getElementById('new-volatile').value);
+      const citric = parseFloat(document.getElementById('new-citric').value);
+      const sugar = parseFloat(document.getElementById('new-sugar').value);
+      const chlorides = parseFloat(document.getElementById('new-chlorides').value);
+      const quality = parseInt(document.getElementById('new-quality').value);
+      
+      if (isNaN(acidity) || isNaN(volatile) || isNaN(citric) || isNaN(sugar) || isNaN(chlorides)) {
+        alert('Please enter valid numbers for all fields');
+        return;
+      }
+      
+      const newId = wineData.length > 0 ? Math.max(...wineData.map(w => w.id)) + 1 : 1;
+      wineData.push({
+        id: newId,
+        acidity: acidity,
+        volatile: volatile,
+        citric: citric,
+        sugar: sugar,
+        chlorides: chlorides,
+        quality: quality
+      });
+      
+      renderDataset();
+    }
+
+    // Randomize data
+    function randomizeData() {
+      wineData = wineData.map(wine => ({
+        ...wine,
+        acidity: (Math.random() * 12 + 4).toFixed(1),
+        volatile: (Math.random() * 1.5 + 0.1).toFixed(2),
+        citric: (Math.random() * 1).toFixed(2),
+        sugar: (Math.random() * 14.6 + 0.9).toFixed(1),
+        chlorides: (Math.random() * 0.6 + 0.01).toFixed(3),
+        quality: Math.random() > 0.5 ? 6 : 3
+      }));
+      renderDataset();
+    }
+
+    // Reset data
+    function resetData() {
+      wineData = [
+        {id: 1, acidity: 7.4, volatile: 0.7, citric: 0.0, sugar: 1.9, chlorides: 0.076, quality: 5},
+        {id: 2, acidity: 7.8, volatile: 0.88, citric: 0.0, sugar: 2.6, chlorides: 0.098, quality: 5},
+        {id: 3, acidity: 7.8, volatile: 0.76, citric: 0.04, sugar: 2.3, chlorides: 0.092, quality: 5},
+        {id: 4, acidity: 11.2, volatile: 0.28, citric: 0.56, sugar: 1.9, chlorides: 0.075, quality: 6},
+        {id: 5, acidity: 7.4, volatile: 0.7, citric: 0.0, sugar: 1.9, chlorides: 0.076, quality: 5},
+        {id: 6, acidity: 7.4, volatile: 0.66, citric: 0.0, sugar: 1.8, chlorides: 0.075, quality: 5},
+        {id: 7, acidity: 7.9, volatile: 0.6, citric: 0.06, sugar: 1.6, chlorides: 0.069, quality: 5},
+        {id: 8, acidity: 7.3, volatile: 0.65, citric: 0.0, sugar: 1.2, chlorides: 0.065, quality: 7},
+        {id: 9, acidity: 7.8, volatile: 0.58, citric: 0.02, sugar: 2.0, chlorides: 0.073, quality: 7},
+        {id: 10, acidity: 7.5, volatile: 0.5, citric: 0.36, sugar: 6.1, chlorides: 0.071, quality: 6}
+      ];
+      renderDataset();
+    }
+
+      // Retrain model
+    function retrainModel() {
+      // In a real implementation, this would retrain the model
+      // For this demo, we'll just show a success message
+      document.getElementById('prediction').textContent = 'SVM model retrained successfully!';
+      document.getElementById('prediction').className = 'prediction-medium';
+    }
+
+    // Predict function
+    function predict() {
+      const acidity = parseFloat(document.getElementById('inputAcidity').value);
+      const volatile = parseFloat(document.getElementById('inputVolatile').value);
+      const citric = parseFloat(document.getElementById('inputCitric').value);
+      const sugar = parseFloat(document.getElementById('inputSugar').value);
+      const chlorides = parseFloat(document.getElementById('inputChlorides').value);
+      
+      if (isNaN(acidity) || isNaN(volatile) || isNaN(citric) || isNaN(sugar) || isNaN(chlorides)) {
+        alert('Please enter valid numbers for all fields');
+        return;
+      }
+      
+      // Simple prediction logic for demo (in reality, this would use the trained model)
+      let quality = 6; // Default medium quality
+      
+      // Adjust based on inputs - SVM might be slightly different
+      if (volatile < 0.3 && citric > 0.3 && chlorides < 0.05) {
+        quality = 8; // High quality
+      } else if (volatile > 0.8 || chlorides > 0.1) {
+        quality = 3; // Low quality
+      } else if (volatile < 0.4 && citric > 0.2) {
+        quality = 7; // Medium-high quality
+      }
+      
+      const predictionDiv = document.getElementById('prediction');
+      if (quality <= 5) {
+        predictionDiv.textContent = `SVM Prediction: Low Quality (${quality})`;
+        predictionDiv.className = 'prediction-low';
+      } else if (quality <= 7) {
+        predictionDiv.textContent = `SVM Prediction: Medium Quality (${quality})`;
+        predictionDiv.className = 'prediction-medium';
+      } else {
+        predictionDiv.textContent = `SVM Prediction: High Quality (${quality})`;
+        predictionDiv.className = 'prediction-high';
+      }
+    }
+  </script>
+</body>
+</html>

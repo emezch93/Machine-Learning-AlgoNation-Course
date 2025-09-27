@@ -1,0 +1,1659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Logistic Regression | ML AlgoNation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #7c3aed;
+      --primary-light: #8b5cf6;
+      --secondary: #dc2626;
+      --accent: #f59e0b;
+      --dark: #1f2937;
+      --light: #f9fafb;
+      --gray: #6b7280;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --info: #3b82f6;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: var(--dark);
+      background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+      min-height: 100vh;
+    }
+    
+    header {
+      background: linear-gradient(120deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 2rem 0;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    header::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.1)"/></svg>');
+      background-size: cover;
+    }
+    
+    header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      position: relative;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    main {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    
+    .lesson {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .lesson:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+    
+    h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 3px solid var(--primary-light);
+    }
+    
+    h3 {
+      font-size: 1.4rem;
+      margin: 1.5rem 0 1rem;
+      color: var(--secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    p {
+      margin-bottom: 1.25rem;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+    
+    code {
+      background: #f1f5f9;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-family: 'Courier New', Courier, monospace;
+      font-weight: 500;
+      color: var(--primary);
+    }
+    
+    .dataset-container {
+      margin: 1.5rem 0;
+      overflow-x: auto;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    th {
+      background: linear-gradient(120deg, var(--primary), var(--primary-light));
+      color: white;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+    
+    tr:hover {
+      background-color: #f1f5f9;
+      transition: background-color 0.2s ease;
+    }
+    
+    .demo {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .demo:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+    
+    #regressionCanvas {
+      width: 100%;
+      max-width: 600px;
+      height: 400px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      background: #f8fafc;
+      margin: 1.5rem auto;
+      display: block;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    #equation {
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--primary);
+      background: linear-gradient(120deg, #fdf2f8, #fce7f3);
+      padding: 1rem;
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      border-left: 4px solid var(--secondary);
+    }
+    
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin: 2rem 0;
+      justify-content: center;
+    }
+    
+    .control-group {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      min-width: 250px;
+    }
+    
+    .control-group h4 {
+      margin-bottom: 1rem;
+      color: var(--dark);
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    button:hover {
+      background: var(--primary-light);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(124, 58, 237, 0.3);
+    }
+    
+    button.secondary {
+      background: var(--secondary);
+    }
+    
+    button.secondary:hover {
+      background: #b91c1c;
+      box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+    }
+    
+    button.warning {
+      background: var(--warning);
+    }
+    
+    button.warning:hover {
+      background: #d97706;
+      box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 1rem;
+      margin-top: 0.5rem;
+      transition: border-color 0.3s ease;
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+    }
+    
+    .navigation {
+      display: flex;
+      justify-content: space-between;
+      margin: 2rem 0;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    
+    .card-btn, .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+    
+    .card-btn {
+      background: white;
+      color: var(--dark);
+      border: 2px solid #e5e7eb;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .card-btn:hover {
+      background: #f8fafc;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .cta-btn {
+      background: linear-gradient(120deg, var(--primary), var(--primary-light));
+      color: white;
+      box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);
+    }
+    
+    .cta-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(124, 58, 237, 0.4);
+    }
+    
+    footer {
+      text-align: center;
+      padding: 2rem;
+      background: var(--dark);
+      color: white;
+      margin-top: 3rem;
+    }
+    
+    .math-explanation {
+      background: #fef2f2;
+      border: 2px solid #fecaca;
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 2rem 0;
+      position: relative;
+    }
+    
+    .math-explanation::before {
+      content: "Mathematical Derivation";
+      position: absolute;
+      top: -12px;
+      left: 20px;
+      background: var(--secondary);
+      color: white;
+      padding: 0.25rem 1rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    
+    .formula {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+      text-align: center;
+      font-family: 'Courier New', monospace;
+      font-size: 1.2rem;
+      border-left: 4px solid var(--secondary);
+    }
+    
+    .step {
+      margin: 1.5rem 0;
+      padding-left: 1.5rem;
+      border-left: 3px solid var(--accent);
+      position: relative;
+    }
+    
+    .step::before {
+      content: "Step";
+      position: absolute;
+      left: -15px;
+      top: 0;
+      background: var(--accent);
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+    
+    .tabs {
+      display: flex;
+      margin: 2rem 0;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .tab {
+      padding: 1rem 2rem;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--gray);
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s ease;
+    }
+    
+    .tab.active {
+      color: var(--primary);
+      border-bottom: 3px solid var(--primary);
+    }
+    
+    .tab-content {
+      display: none;
+      padding: 2rem 0;
+    }
+    
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      border-bottom: 1px dotted var(--primary);
+      cursor: help;
+    }
+    
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 250px;
+      background-color: var(--dark);
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 10px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+    
+    .tooltip .tooltiptext::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: var(--dark) transparent transparent transparent;
+    }
+    
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    .sigmoid-curve {
+      text-align: center;
+      margin: 2rem 0;
+      padding: 2rem;
+      background: #f0fdf4;
+      border-radius: 12px;
+      border: 2px solid #bbf7d0;
+    }
+    
+    .decision-boundary {
+      background: #fffbeb;
+      border: 2px solid #fde68a;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+    
+    .probability-scale {
+      display: flex;
+      align-items: center;
+      margin: 1.5rem 0;
+      background: #f3f4f6;
+      padding: 1rem;
+      border-radius: 8px;
+    }
+    
+    .prob-marker {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      position: absolute;
+      transform: translateX(-50%);
+    }
+    
+    @media (max-width: 768px) {
+      header h1 {
+        font-size: 2rem;
+      }
+      
+      .lesson, .demo {
+        padding: 1.5rem;
+      }
+      
+      .navigation {
+        flex-direction: column;
+      }
+      
+      .card-btn, .cta-btn {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .controls {
+        flex-direction: column;
+      }
+    }
+    #randomize-data{
+      margin-bottom: 10px;
+    }
+    #add-point{
+    margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><i class="fas fa-brain"></i> Logistic Regression</h1>
+    <p>Master the fundamental classification algorithm that predicts probabilities using the sigmoid function</p>
+  </header>
+
+  <main>
+    <div class="tabs">
+      <div class="tab active" data-tab="concept">Concept</div>
+      <div class="tab" data-tab="math">Mathematics</div>
+      <div class="tab" data-tab="implementation">Implementation</div>
+      <div class="tab" data-tab="applications">Applications</div>
+    </div>
+
+    <div class="tab-content active" id="concept">
+      <section class="lesson">
+        <h2><i class="fas fa-lightbulb"></i> What is Logistic Regression?</h2>
+        <p>
+          Despite its name, Logistic Regression is not a regression algorithm but a <span class="tooltip">classification<span class="tooltiptext">A type of <strong>Supervised Learning</strong> where the goal is to predict discrete class labels for given input data</span></span> algorithm. 
+          It's used to predict the probability that an instance belongs to a particular class, typically binary (0 or 1).
+          The algorithm uses the <span class="tooltip">sigmoid function<span class="tooltiptext">Also called the logistic function, it maps any real-valued number to a value between 0 and 1, making it ideal for probability estimation</span></span> to transform linear predictions into probabilities.
+        </p>
+        
+        <p>
+          Unlike Linear Regression which predicts continuous values, Logistic Regression predicts probabilities that are then thresholded to produce class labels.
+          It's particularly useful when you need to understand not just which class an instance belongs to, but also how confident the model is in that prediction.
+          The output of logistic regression is always between 0 and 1, making it perfect for probability estimation.
+        </p>
+
+        <div class="sigmoid-curve">
+          <h3><i class="fas fa-chart-line"></i> The Sigmoid Function</h3>
+          <p>The heart of logistic regression is the sigmoid function, which transforms any real number into a value between 0 and 1:</p>
+          <div class="formula">σ(z) = 1 / (1 + e^(-z))</div>
+          <p>Where z is the linear combination of features: z = w₀ + w₁x₁ + w₂x₂ + ... + wₙxₙ</p>
+          
+          <div class="probability-scale">
+            <div style="flex: 1; position: relative; height: 30px; background: linear-gradient(to right, #dc2626, #f59e0b, #10b981);">
+              <div class="prob-marker" style="left: 0%; background: #dc2626;"></div>
+              <div class="prob-marker" style="left: 50%; background: #f59e0b;"></div>
+              <div class="prob-marker" style="left: 100%; background: #10b981;"></div>
+            </div>
+          </div>
+          <p style="text-align: center; margin-top: 1rem;">
+            <strong>0.0</strong> (Certain Class 0) → 
+            <strong>0.5</strong> (Uncertain) → 
+            <strong>1.0</strong> (Certain Class 1)
+          </p>
+        </div>
+
+        <h3><i class="fas fa-database"></i> Sample Dataset: Exam Results Prediction</h3>
+        <p>Let's examine a practical example where we want to predict whether a student will pass (1) or fail (0) an exam based on study hours and previous grades:</p>
+        
+        <div class="dataset-container">
+          <table id="dataset-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Study Hours</th>
+                <th>Previous Grade</th>
+                <th>Linear Combination (z)</th>
+                <th>Sigmoid Output (Probability)</th>
+                <th>Predicted Class</th>
+                <th>Actual Result</th>
+              </tr>
+            </thead>
+            <tbody id="dataset-body">
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="controls">
+          <div class="control-group">
+            <h4>Add New Data Point</h4>
+            <input type="number" id="new-hours" placeholder="Study Hours" step="0.1" min="0">
+            <input type="number" id="new-grade" placeholder="Previous Grade (0-100)" step="1" min="0" max="100">
+            <select id="new-result">
+              <option value="0">Failed (0)</option>
+              <option value="1">Passed (1)</option>
+            </select>
+            <button id="add-point"><i class="fas fa-plus"></i> Add Point</button>
+          </div>
+          
+          <div class="control-group">
+            <h4>Dataset Operations</h4>
+            <button id="randomize-data"><i class="fas fa-random"></i> Randomize Data</button>
+            <button id="reset-data" class="warning"><i class="fas fa-undo"></i> Reset Data</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="demo">
+        <h3><i class="fas fa-flask"></i> Interactive Visualization</h3>
+        <p>Adjust the decision boundary and see how it affects classification results!</p>
+        <canvas id="regressionCanvas" width="600" height="400"></canvas>
+        <div id="equation">
+          <strong>Decision Boundary:</strong> P(y=1) = 1 / (1 + e^(-(0.00 + 0.00×x₁ + 0.00×x₂)))
+        </div>
+        
+        <div class="decision-boundary">
+          <h4><i class="fas fa-ruler-combined"></i> Decision Boundary Controls</h4>
+          <p>Adjust the weights to change the decision boundary:</p>
+          <div class="controls" style="justify-content: center; margin: 1rem 0;">
+            <div class="control-group" style="min-width: 200px;">
+              <label>Intercept (w₀):</label>
+              <input type="range" id="weight-b" min="-5" max="5" step="0.1" value="0">
+              <span id="weight-b-value">0.00</span>
+            </div>
+            <div class="control-group" style="min-width: 200px;">
+              <label>Study Hours (w₁):</label>
+              <input type="range" id="weight-w1" min="-5" max="5" step="0.1" value="1">
+              <span id="weight-w1-value">1.00</span>
+            </div>
+            <div class="control-group" style="min-width: 200px;">
+              <label>Previous Grade (w₂):</label>
+              <input type="range" id="weight-w2" min="-5" max="5" step="0.1" value="0.1">
+              <span id="weight-w2-value">0.10</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="controls">
+          <div class="control-group">
+            <h4>Model Metrics</h4>
+            <p><strong>Accuracy:</strong> <span id="accuracy-value">0.00%</span></p>
+            <p><strong>Log Loss:</strong> <span id="logloss-value">0.00</span></p>
+            <p><strong>Threshold:</strong> <span id="threshold-value">0.50</span></p>
+            <input type="range" id="threshold-slider" min="0.1" max="0.9" step="0.05" value="0.5">
+          </div>
+          
+          <div class="control-group">
+            <h4>Visualization Options</h4>
+            <label>
+              <input type="checkbox" id="show-grid" checked> Show Grid
+            </label>
+            <label>
+              <input type="checkbox" id="show-boundary" checked> Show Decision Boundary
+            </label>
+            <label>
+              <input type="checkbox" id="show-probabilities" checked> Show Probabilities
+            </label>
+            <button id="train-model" class="secondary"><i class="fas fa-graduation-cap"></i> Train Model</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab-content" id="math">
+      <section class="lesson">
+        <h2><i class="fas fa-calculator"></i> Mathematical Foundation</h2>
+        <p>
+          Logistic Regression is based on the concept of <span class="tooltip">maximum likelihood estimation<span class="tooltiptext">A method of estimating the parameters of a statistical model by finding the parameter values that maximize the likelihood of making the observations given the parameters</span></span>. 
+          Instead of minimizing the sum of squared errors (like in linear regression), we maximize the likelihood of observing our training data given our model parameters.
+        </p>
+           <div class="math-explanation">
+          <div class="step">
+            <h3>Step 1: The Logistic Function</h3>
+            <p>We use the sigmoid (logistic) function to map any real number to a value between 0 and 1:</p>
+            <div class="formula">σ(z) = 1 / (1 + e^(-z))</div>
+            <p>Where z is the linear combination of our features and weights:</p>
+            <div class="formula">z = w₀ + w₁x₁ + w₂x₂ + ... + wₙxₙ = w^T x</div>
+            <p>The sigmoid function has several important properties:
+              <ul>
+                <li>σ(0) = 0.5</li>
+                <li>As z → ∞, σ(z) → 1</li>
+                <li>As z → -∞, σ(z) → 0</li>
+                <li>It's differentiable everywhere, which is crucial for optimization</li>
+              </ul>
+            </p>
+          </div>
+          
+          <div class="step">
+            <h3>Step 2: Probability Interpretation</h3>
+            <p>We interpret the output of the sigmoid function as a probability:</p>
+            <div class="formula">P(y=1|x;w) = σ(w^T x) = 1 / (1 + e^(-w^T x))</div>
+            <div class="formula">P(y=0|x;w) = 1 - P(y=1|x;w) = 1 / (1 + e^(w^T x))</div>
+            <p>We can combine these into a single expression using the fact that y ∈ {0,1}:</p>
+            <div class="formula">P(y|x;w) = [P(y=1|x;w)]^y × [P(y=0|x;w)]^(1-y)</div>
+          </div>
+          
+          <div class="step">
+            <h3>Step 3: The Log-Likelihood Function</h3>
+            <p>To find the optimal weights, we maximize the likelihood of our training </p>
+            <div class="formula">L(w) = Π P(y⁽ⁱ⁾|x⁽ⁱ⁾;w) = Π [σ(w^T x⁽ⁱ⁾)]^y⁽ⁱ⁾ × [1-σ(w^T x⁽ⁱ⁾)]^(1-y⁽ⁱ⁾)</div>
+            <p>Working with products is difficult, so we take the logarithm to convert to a sum:</p>
+            <div class="formula">ℓ(w) = log L(w) = Σ [y⁽ⁱ⁾ log(σ(w^T x⁽ⁱ⁾)) + (1-y⁽ⁱ⁾) log(1-σ(w^T x⁽ⁱ⁾))]</div>
+            <p>This is called the log-likelihood function. We want to find w that maximizes ℓ(w).</p>
+          </div>
+          
+          <div class="step">
+            <h3>Step 4: Gradient Ascent</h3>
+            <p>Since there's no closed-form solution (unlike linear regression), we use gradient-based optimization. The gradient of the log-likelihood with respect to wⱼ is:</p>
+            <div class="formula">∂ℓ(w)/∂wⱼ = Σ (y⁽ⁱ⁾ - σ(w^T x⁽ⁱ⁾)) xⱼ⁽ⁱ⁾</div>
+            <p>We update our weights using gradient ascent (since we're maximizing):</p>
+            <div class="formula">wⱼ := wⱼ + α Σ (y⁽ⁱ⁾ - σ(w^T x⁽ⁱ⁾)) xⱼ⁽ⁱ⁾</div>
+            <p>Where α is the learning rate. This update rule has an intuitive interpretation: we adjust the weights based on the prediction error (y - prediction) multiplied by the feature value.</p>
+          </div>
+        </div>
+        
+        <h3><i class="fas fa-chart-bar"></i> Model Evaluation</h3>
+        <p>
+          Evaluating logistic regression models requires different metrics than linear regression since we're dealing with classification:
+        </p>
+        
+        <div class="formula">
+          Log Loss (Cross-Entropy Loss) = -1/n Σ [y⁽ⁱ⁾ log(ŷ⁽ⁱ⁾) + (1-y⁽ⁱ⁾) log(1-ŷ⁽ⁱ⁾)]<br>
+          Accuracy = (TP + TN) / (TP + TN + FP + FN)<br>
+          Precision = TP / (TP + FP)<br>
+          Recall = TP / (TP + FN)<br>
+          F1 Score = 2 × (Precision × Recall) / (Precision + Recall)
+        </div>
+        
+        <p>Where TP = True Positives, TN = True Negatives, FP = False Positives, FN = False Negatives.</p>
+      </section>
+    </div>
+
+    <div class="tab-content" id="implementation">
+      <section class="lesson">
+        <h2><i class="fas fa-code"></i> Implementation Details</h2>
+        <p>
+          Let's break down the implementation of logistic regression into manageable components. Understanding each part will help you implement and modify the algorithm for different use cases.
+        </p>
+        
+        <h3><i class="fas fa-cogs"></i> Algorithm Implementation</h3>
+        <pre id="code-implementation" style="background: #1e293b; color: #e2e8f0; padding: 1.5rem; border-radius: 8px; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.95rem; line-height: 1.5;">
+          
+# 🎯 Logistic Regression - Complete Implementation (Run All at Once)
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_auc_score, roc_curve
+
+class LogisticRegression:
+    def __init__(self, learning_rate=0.01, n_iterations=1000):
+        self.learning_rate = learning_rate
+        self.n_iterations = n_iterations
+        self.weights = None
+        self.bias = None
+        self.cost_history = []
+    
+    def sigmoid(self, z):
+        # Clip z to prevent overflow
+        z = np.clip(z, -500, 500)
+        return 1 / (1 + np.exp(-z))
+    
+    def fit(self, X, y):
+        n_samples, n_features = X.shape
+        # Initialize parameters
+        self.weights = np.zeros(n_features)
+        self.bias = 0
+        
+        # Gradient descent
+        for i in range(self.n_iterations):
+            # Linear model
+            linear_model = np.dot(X, self.weights) + self.bias
+            # Apply sigmoid
+            y_pred = self.sigmoid(linear_model)
+            
+            # Compute cost (log loss)
+            cost = - (1/n_samples) * np.sum(y * np.log(y_pred + 1e-15) + (1 - y) * np.log(1 - y_pred + 1e-15))
+            self.cost_history.append(cost)
+            
+            # Compute gradients
+            dw = (1/n_samples) * np.dot(X.T, (y_pred - y))
+            db = (1/n_samples) * np.sum(y_pred - y)
+            
+            # Update parameters
+            self.weights -= self.learning_rate * dw
+            self.bias -= self.learning_rate * db
+            
+            if i % 200 == 0:
+                print(f"Iteration {i}: Cost = {cost:.6f}")
+    
+    def predict_proba(self, X):
+        linear_model = np.dot(X, self.weights) + self.bias
+        return self.sigmoid(linear_model)
+    
+    def predict(self, X, threshold=0.5):
+        probabilities = self.predict_proba(X)
+        return (probabilities >= threshold).astype(int)
+    
+    def get_params(self):
+        return self.weights, self.bias
+
+# 🎓 Generate sample student dataset: Predict if student passes (1) or fails (0)
+np.random.seed(42)
+n_samples = 300
+
+# Features: study_hours, previous_grade
+study_hours = np.random.uniform(1, 12, n_samples)
+previous_grade = np.random.uniform(40, 100, n_samples)
+
+# Create target: higher study hours + grades = higher chance of passing
+z = study_hours * 0.5 + previous_grade * 0.05 - 6  # Decision boundary
+prob = 1 / (1 + np.exp(-z))  # Sigmoid
+noise = np.random.normal(0, 0.2, n_samples)
+prob = np.clip(prob + noise, 0, 1)
+exam_result = (np.random.random(n_samples) < prob).astype(int)
+
+# Create DataFrame
+df = pd.DataFrame({
+    'study_hours': study_hours,
+    'previous_grade': previous_grade,
+    'exam_result': exam_result
+})
+
+print("📊 Dataset Overview:")
+print(f"Shape: {df.shape}")
+print(f"Pass rate: {df['exam_result'].mean():.2%}")
+print("\nFirst 5 rows:")
+print(df.head())
+
+# 🔧 Prepare data
+X = df[['study_hours', 'previous_grade']].values
+y = df['exam_result'].values
+
+# Split and scale
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42, stratify=y)
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# 🚀 Train model
+model = LogisticRegression(learning_rate=0.1, n_iterations=1000)
+model.fit(X_train_scaled, y_train)
+
+# 📈 Get parameters
+weights, bias = model.get_params()
+print(f"\n✅ Final Model Parameters:")
+print(f"Intercept (bias): {bias:.4f}")
+print(f"Weight for Study Hours: {weights[0]:.4f}")
+print(f"Weight for Previous Grade: {weights[1]:.4f}")
+
+# 🔮 Make predictions
+y_train_pred = model.predict(X_train_scaled)
+y_test_pred = model.predict(X_test_scaled)
+y_test_proba = model.predict_proba(X_test_scaled)
+
+# 📊 Evaluate model
+train_acc = accuracy_score(y_train, y_train_pred)
+test_acc = accuracy_score(y_test, y_test_pred)
+roc_auc = roc_auc_score(y_test, y_test_proba)
+
+print(f"\n📈 Model Performance:")
+print(f"Training Accuracy: {train_acc:.4f}")
+print(f"Testing Accuracy: {test_acc:.4f}")
+print(f"ROC AUC Score: {roc_auc:.4f}")
+print(f"\n📋 Classification Report (Test Set):")
+print(classification_report(y_test, y_test_pred, target_names=['Fail', 'Pass']))
+
+# 🖼️ Visualize results
+fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+
+# 1. Cost function over iterations
+axes[0, 0].plot(model.cost_history, color='#7c3aed')
+axes[0, 0].set_title('Cost Function Over Iterations')
+axes[0, 0].set_xlabel('Iterations')
+axes[0, 0].set_ylabel('Log Loss')
+axes[0, 0].grid(True, alpha=0.3)
+
+# 2. Decision boundary
+axes[0, 1].scatter(df[df['exam_result'] == 0]['study_hours'], 
+                   df[df['exam_result'] == 0]['previous_grade'], 
+                   alpha=0.6, label='Fail', color='#ef4444')
+axes[0, 1].scatter(df[df['exam_result'] == 1]['study_hours'], 
+                   df[df['exam_result'] == 1]['previous_grade'], 
+                   alpha=0.6, label='Pass', color='#10b981')
+axes[0, 1].set_title('Decision Boundary')
+axes[0, 1].set_xlabel('Study Hours')
+axes[0, 1].set_ylabel('Previous Grade')
+axes[0, 1].legend()
+axes[0, 1].grid(True, alpha=0.3)
+
+# 3. ROC Curve
+fpr, tpr, _ = roc_curve(y_test, y_test_proba)
+axes[1, 0].plot(fpr, tpr, color='#059669', label=f'ROC Curve (AUC = {roc_auc:.4f})')
+axes[1, 0].plot([0, 1], [0, 1], 'k--', label='Random')
+axes[1, 0].set_title('ROC Curve')
+axes[1, 0].set_xlabel('False Positive Rate')
+axes[1, 0].set_ylabel('True Positive Rate')
+axes[1, 0].legend()
+axes[1, 0].grid(True, alpha=0.3)
+
+# 4. Confusion Matrix
+cm = confusion_matrix(y_test, y_test_pred)
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=axes[1, 1])
+axes[1, 1].set_title('Confusion Matrix')
+axes[1, 1].set_xlabel('Predicted')
+axes[1, 1].set_ylabel('Actual')
+
+plt.tight_layout()
+plt.show()
+
+# 💡 Make predictions for new students
+new_students = np.array([[3.5, 65], [5.0, 75], [7.5, 85], [2.0, 55]])
+new_students_scaled = scaler.transform(new_students)
+new_predictions = model.predict(new_students_scaled)
+new_probabilities = model.predict_proba(new_students_scaled)
+
+print(f"\n🔮 Predictions for New Students:")
+for i, (hours, grade) in enumerate(new_students):
+    result = "PASS" if new_predictions[i] == 1 else "FAIL"
+    prob = new_probabilities[i]
+    print(f"Student {i+1}: {hours}h, {grade}% → {result} (Probability: {prob:.4f})")
+
+print(f"\n🎉 Logistic Regression Complete! Model is trained and ready for predictions.")
+
+          
+        </pre>
+        
+       <h3><i class="fas fa-cogs"></i> Advanced Implementation With Regularization</h3>
+          <p>
+          To prevent overfitting, we can add regularization to our logistic regression model. Here's an implementation with L2 regularization:
+        </p>
+        
+        <pre id="code-implementation" style="background: #1e293b; color: #e2e8f0; padding: 1.5rem; border-radius: 8px; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.95rem; line-height: 1.5;">
+     
+          
+        
+        import numpy as np
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, log_loss
+
+class LogisticRegressionL2:
+    def __init__(self, lr=0.01, n_iter=1000, reg_lambda=0.1):
+        """
+        Logistic Regression with L2 Regularization
+        Parameters:
+        - lr: learning rate
+        - n_iter: number of iterations for gradient descent
+        - reg_lambda: regularization strength
+        """
+        self.lr = lr
+        self.n_iter = n_iter
+        self.reg_lambda = reg_lambda
+        self.theta = None
+    
+    def sigmoid(self, z):
+        return 1 / (1 + np.exp(-z))
+    
+    def fit(self, X, y):
+        # Add bias term
+        X = np.c_[np.ones((X.shape[0], 1)), X]
+        n_samples, n_features = X.shape
+        self.theta = np.zeros(n_features)
+        
+        for _ in range(self.n_iter):
+            # Predictions
+            linear_model = np.dot(X, self.theta)
+            y_pred = self.sigmoid(linear_model)
+            
+            # Gradient with L2 regularization (exclude bias term from regularization)
+            gradient = (1/n_samples) * np.dot(X.T, (y_pred - y)) + (self.reg_lambda/n_samples) * np.r_[0, self.theta[1:]]
+            
+            # Update parameters
+            self.theta -= self.lr * gradient
+    
+    def predict_proba(self, X):
+        X = np.c_[np.ones((X.shape[0], 1)), X]
+        return self.sigmoid(np.dot(X, self.theta))
+    
+    def predict(self, X, threshold=0.5):
+        return (self.predict_proba(X) >= threshold).astype(int)
+
+# ---------------- Demo ---------------- #
+# Generate synthetic dataset
+X, y = make_classification(n_samples=1000, n_features=10, n_classes=2, random_state=42)
+
+# Train-test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Train model
+model = LogisticRegressionL2(lr=0.1, n_iter=5000, reg_lambda=1.0)
+model.fit(X_train, y_train)
+
+# Predictions
+y_pred = model.predict(X_test)
+y_proba = model.predict_proba(X_test)
+
+# Evaluation
+acc = accuracy_score(y_test, y_pred)
+loss = log_loss(y_test, y_proba)
+
+print("Accuracy:", acc)
+print("Log Loss:", loss)
+print("Learned Weights:", model.theta)
+        </pre>
+      </section>
+    </div>
+
+    <div class="tab-content" id="applications">
+      <section class="lesson">
+        <h2><i class="fas fa-rocket"></i> Real-World Applications</h2>
+        <p>
+          Logistic Regression is one of the most widely used classification algorithms in various fields. Its simplicity, interpretability, and effectiveness make it a go-to method for many binary classification tasks.
+        </p>
+        
+        <h3><i class="fas fa-medical"></i> Healthcare and Medicine</h3>
+        <ul>
+          <li><strong>Disease Diagnosis:</strong> Predict whether a patient has a disease based on symptoms and test results</li>
+          <li><strong>Patient Risk Stratification:</strong> Identify high-risk patients who may need more intensive care</li>
+          <li><strong>Treatment Response:</strong> Predict whether a patient will respond to a particular treatment</li>
+          <li><strong>Readmission Prediction:</strong> Forecast if a patient is likely to be readmitted to the hospital</li>
+        </ul>
+        
+        <h3><i class="fas fa-shopping-cart"></i> Business and Finance</h3>
+        <ul>
+          <li><strong>Credit Scoring:</strong> Determine whether to approve a loan application based on applicant's financial history</li>
+          <li><strong>Customer Churn:</strong> Predict which customers are likely to stop using a service</li>
+          <li><strong>Fraud Detection:</strong> Identify potentially fraudulent transactions</li>
+          <li><strong>Marketing Response:</strong> Predict whether a customer will respond to a marketing campaign</li>
+        </ul>
+        
+        <h3><i class="fas fa-computer"></i> Technology and Social Media</h3>
+        <ul>
+          <li><strong>Spam Detection:</strong> Classify emails as spam or not spam</li>
+          <li><strong>Sentiment Analysis:</strong> Determine if a product review is positive or negative</li>
+          <li><strong>Click-Through Rate Prediction:</strong> Predict whether a user will click on an ad</li>
+          <li><strong>Content Moderation:</strong> Flag potentially inappropriate content for review</li>
+        </ul>
+        
+        <h3><i class="fas fa-exclamation-triangle"></i> Limitations and Considerations</h3>
+        <p>While logistic regression is powerful, it has several important limitations:</p>
+        <ul>
+          <li><strong>Linear Decision Boundary:</strong> It can only learn linear decision boundaries in the feature space</li>
+          <li><strong>Feature Engineering:</strong> Performance heavily depends on proper feature engineering and selection</li>
+          <li><strong>Correlated Features:</strong> Highly correlated features can make the model unstable and coefficients hard to interpret</li>
+          <li><strong>Outliers:</strong> While more robust than linear regression, outliers can still affect performance</li>
+          <li><strong>Class Imbalance:</strong> Performance can suffer when one class is much more frequent than the other</li>
+        </ul>
+        
+        <div class="math-explanation" style="background: #fffbeb; border-color: #fde68a;">
+          <h3>When to Use Logistic Regression</h3>
+          <p>Logistic regression is appropriate when:</p>
+          <ol>
+            <li>You need to solve a binary classification problem</li>
+            <li>You want a probabilistic output (not just a class label)</li>
+            <li>Interpretability is important (you need to understand how features affect predictions)</li>
+            <li>Your features have a roughly linear relationship with the log-odds of the target</li>
+            <li>You have a moderate-sized dataset and want a relatively simple, fast algorithm</li>
+            <li>You need to implement the algorithm from scratch or understand its inner workings</li>
+          </ol>
+        </div>
+        
+        <h3><i class="fas fa-lightbulb"></i> Pro Tips for Better Performance</h3>
+        <div class="decision-boundary">
+          <ul>
+            <li><strong>Feature Scaling:</strong> Normalize or standardize your features, especially if they're on different scales</li>
+            <li><strong>Regularization:</strong> Use L1 or L2 regularization to prevent overfitting and handle multicollinearity</li>
+            <li><strong>Feature Engineering:</strong> Create polynomial features or interaction terms to capture non-linear relationships</li>
+            <li><strong>Handle Class Imbalance:</strong> Use techniques like SMOTE, class weights, or appropriate evaluation metrics</li>
+            <li><strong>Calibration:</strong> If probability estimates need to be well-calibrated, consider using Platt scaling or isotonic regression</li>
+          </ul>
+        </div>
+      </section>
+    </div>
+
+    <section class="navigation">
+      <a href="linear-regression.html" class="card-btn" target="_blank"><i class="fas fa-backward"></i> Previous: Linear Regression </a>
+      <a href="decision-trees.html" class="cta-btn" target="_blank"><i class="fas fa-forward"></i> Next: Decision tree </a>
+    </section>
+  </main>
+
+  <footer>
+    <p>Simplified Machine Learning  Concepts Through Interactive Examples</p>
+    <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">&copy; 2025 Machine Learning | AlgoNation • Learn by doing</p>
+  </footer>
+<script>
+    // Dataset management
+    let data = [
+      {hours: 3, grade: 75, result: 1},
+      {hours: 1, grade: 60, result: 0},
+      {hours: 5, grade: 85, result: 1},
+      {hours: 2, grade: 55, result: 0},
+      {hours: 6, grade: 90, result: 1},
+      {hours: 1, grade: 45, result: 0},
+      {hours: 4, grade: 80, result: 1},
+      {hours: 2, grade: 65, result: 0}
+    ];
+    
+    let weights = {b: 0, w1: 1, w2: 0.1};
+    let threshold = 0.5;
+    let isTraining = false;
+    
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+      updateDatasetTable();
+      drawLogisticRegression();
+      setupEventListeners();
+      setupTabs();
+    });
+    
+    function setupTabs() {
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+          // Remove active class from all tabs and content
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          
+          // Add active class to clicked tab
+          this.classList.add('active');
+          
+          // Show corresponding content
+          const tabId = this.getAttribute('data-tab');
+          document.getElementById(tabId).classList.add('active');
+        });
+      });
+    }
+    
+    function setupEventListeners() {
+      // Add new data point
+      document.getElementById('add-point').addEventListener('click', function() {
+        const hoursInput = document.getElementById('new-hours');
+        const gradeInput = document.getElementById('new-grade');
+        const resultInput = document.getElementById('new-result');
+        
+        const hours = parseFloat(hoursInput.value);
+        const grade = parseFloat(gradeInput.value);
+        const result = parseInt(resultInput.value);
+        
+        if (!isNaN(hours) && !isNaN(grade) && hours >= 0 && grade >= 0 && grade <= 100 && (result === 0 || result === 1)) {
+          data.push({hours, grade, result});
+          updateDatasetTable();
+          drawLogisticRegression();
+          hoursInput.value = '';
+          gradeInput.value = '';
+        } else {
+          alert('Please enter valid values: Hours ≥ 0, 0 ≤ Grade ≤ 100, Result = 0 or 1');
+        }
+      });
+      
+      // Randomize data
+      document.getElementById('randomize-data').addEventListener('click', function() {
+        data = [];
+        const count = 10 + Math.floor(Math.random() * 5);
+        for (let i = 0; i < count; i++) {
+          const hours = 1 + Math.random() * 9;
+          const grade = 40 + Math.random() * 60;
+          // Generate result based on hours and grade with some noise
+          const prob = 1 / (1 + Math.exp(-(hours * 0.5 + grade * 0.05 - 5)));
+          const noise = (Math.random() - 0.5) * 0.3;
+          const result = prob + noise > 0.5 ? 1 : 0;
+          
+          data.push({
+            hours: parseFloat(hours.toFixed(2)), 
+            grade: parseFloat(grade.toFixed(2)), 
+            result: result
+          });
+        }
+        updateDatasetTable();
+        drawLogisticRegression();
+      });
+      
+      // Reset data
+      document.getElementById('reset-data').addEventListener('click', function() {
+        data = [
+          {hours: 3, grade: 75, result: 1},
+          {hours: 1, grade: 60, result: 0},
+          {hours: 5, grade: 85, result: 1},
+          {hours: 2, grade: 55, result: 0},
+          {hours: 6, grade: 90, result: 1},
+          {hours: 1, grade: 45, result: 0},
+          {hours: 4, grade: 80, result: 1},
+          {hours: 2, grade: 65, result: 0}
+        ];
+        updateDatasetTable();
+        drawLogisticRegression();
+      });
+      
+      // Weight sliders
+      document.getElementById('weight-b').addEventListener('input', function() {
+        weights.b = parseFloat(this.value);
+        document.getElementById('weight-b-value').textContent = weights.b.toFixed(2);
+        drawLogisticRegression();
+      });
+      
+      document.getElementById('weight-w1').addEventListener('input', function() {
+        weights.w1 = parseFloat(this.value);
+        document.getElementById('weight-w1-value').textContent = weights.w1.toFixed(2);
+        drawLogisticRegression();
+      });
+      
+      document.getElementById('weight-w2').addEventListener('input', function() {
+        weights.w2 = parseFloat(this.value);
+        document.getElementById('weight-w2-value').textContent = weights.w2.toFixed(2);
+        drawLogisticRegression();
+      });
+      
+      // Threshold slider
+      document.getElementById('threshold-slider').addEventListener('input', function() {
+        threshold = parseFloat(this.value);
+        document.getElementById('threshold-value').textContent = threshold.toFixed(2);
+        drawLogisticRegression();
+      });
+      
+      // Train model button
+      document.getElementById('train-model').addEventListener('click', function() {
+        if (isTraining) return;
+        
+        trainLogisticRegression();
+      });
+      
+      // Visualization options
+      document.getElementById('show-grid').addEventListener('change', drawLogisticRegression);
+      document.getElementById('show-boundary').addEventListener('change', drawLogisticRegression);
+      document.getElementById('show-probabilities').addEventListener('change', drawLogisticRegression);
+    }
+    
+    function updateDatasetTable() {
+      const tableBody = document.getElementById('dataset-body');
+      tableBody.innerHTML = '';
+      
+      data.forEach((point, index) => {
+        // Calculate linear combination and sigmoid output
+        const z = weights.b + weights.w1 * point.hours + weights.w2 * point.grade;
+        const sigmoid = 1 / (1 + Math.exp(-z));
+        const predicted = sigmoid >= threshold ? 1 : 0;
+        const correct = predicted === point.result ? '✓' : '✗';
+        
+        const row = document.createElement('tr');
+        
+        // Set row color based on correctness
+        if (predicted === point.result) {
+          row.style.backgroundColor = '#dcfce7'; // Correct prediction
+        } else {
+          row.style.backgroundColor = '#fee2e2'; // Incorrect prediction
+        }
+        
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${point.hours}</td>
+          <td>${point.grade}</td>
+          <td>${z.toFixed(4)}</td>
+          <td>${sigmoid.toFixed(4)}</td>
+          <td>${predicted} ${correct}</td>
+          <td>${point.result}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+      
+      // Update metrics
+      updateMetrics();
+    }
+    
+    function updateMetrics() {
+      if (data.length === 0) return;
+      
+      let correct = 0;
+      let logLoss = 0;
+      
+      data.forEach(point => {
+        const z = weights.b + weights.w1 * point.hours + weights.w2 * point.grade;
+        const sigmoid = 1 / (1 + Math.exp(-z));
+        const predicted = sigmoid >= threshold ? 1 : 0;
+        
+        if (predicted === point.result) {
+          correct++;
+        }
+        
+        // Calculate log loss
+        if (point.result === 1) {
+          logLoss += -Math.log(sigmoid + 1e-15);
+        } else {
+          logLoss += -Math.log(1 - sigmoid + 1e-15);
+        }
+      });
+      
+      const accuracy = (correct / data.length) * 100;
+      logLoss /= data.length;
+      
+      document.getElementById('accuracy-value').textContent = accuracy.toFixed(2) + '%';
+      document.getElementById('logloss-value').textContent = logLoss.toFixed(4);
+    }
+    
+    // Sigmoid function
+    function sigmoid(z) {
+      // Clip z to prevent overflow
+      z = Math.max(-500, Math.min(500, z));
+      return 1 / (1 + Math.exp(-z));
+    }
+    
+    // Draw the logistic regression visualization
+    function drawLogisticRegression() {
+      const canvas = document.getElementById("regressionCanvas");
+      const ctx = canvas.getContext("2d");
+      
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Get settings
+      const showGrid = document.getElementById('show-grid').checked;
+      const showBoundary = document.getElementById('show-boundary').checked;
+      const showProbabilities = document.getElementById('show-probabilities').checked;
+      
+      // Update equation
+      document.getElementById("equation").innerHTML = 
+        `<strong>Decision Boundary:</strong> P(y=1) = 1 / (1 + e^(-(${weights.b.toFixed(2)} + ${weights.w1.toFixed(2)}×x₁ + ${weights.w2.toFixed(2)}×x₂)))`;
+      
+      // Scaling with padding
+      const padding = 60;
+      const maxX = Math.max(...data.map(p => p.hours)) + 1;
+      const maxY = Math.max(...data.map(p => p.grade)) + 10;
+      const minX = Math.min(...data.map(p => p.hours)) - 0.5;
+      const minY = Math.min(...data.map(p => p.grade)) - 5;
+      const scaleX = (canvas.width - 2 * padding) / (maxX - minX);
+      const scaleY = (canvas.height - 2 * padding) / (maxY - minY);
+      
+      // Draw grid
+      if (showGrid) {
+        ctx.strokeStyle = '#e5e7eb';
+        ctx.lineWidth = 1;
+        
+        // Vertical grid lines (hours)
+        for (let i = Math.ceil(minX); i <= maxX; i++) {
+          const x = padding + (i - minX) * scaleX;
+          ctx.beginPath();
+          ctx.moveTo(x, padding);
+          ctx.lineTo(x, canvas.height - padding);
+          ctx.stroke();
+          
+          // Labels
+          ctx.fillStyle = '#6b7280';
+          ctx.font = '12px Arial';
+          ctx.fillText(i.toString(), x - 5, canvas.height - padding + 20);
+        }
+        
+        // Horizontal grid lines (grades)
+        for (let i = Math.ceil(minY / 10) * 10; i <= maxY; i += 10) {
+          const y = canvas.height - padding - (i - minY) * scaleY;
+          ctx.beginPath();
+          ctx.moveTo(padding, y);
+          ctx.lineTo(canvas.width - padding, y);
+          ctx.stroke();
+          
+          // Labels
+          ctx.fillStyle = '#6b7280';
+          ctx.font = '12px Arial';
+          ctx.fillText(i.toString(), padding - 25, y + 5);
+        }
+      }
+      
+      // Draw axes
+      ctx.strokeStyle = '#1f2937';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(padding, canvas.height - padding);
+      ctx.lineTo(canvas.width - padding, canvas.height - padding);
+      ctx.moveTo(padding, canvas.height - padding);
+      ctx.lineTo(padding, padding);
+      ctx.stroke();
+      
+      // Axis labels
+      ctx.fillStyle = '#1f2937';
+      ctx.font = '14px Arial';
+      ctx.fillText('Study Hours', canvas.width / 2, canvas.height - 15);
+      ctx.save();
+      ctx.translate(20, canvas.height / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText('Previous Grade', 0, 0);
+      ctx.restore();
+      
+      // Draw decision boundary (where sigmoid = threshold)
+      if (showBoundary && weights.w2 !== 0) {
+        ctx.strokeStyle = '#7c3aed';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        
+        // Calculate line: w0 + w1*x1 + w2*x2 = log(threshold/(1-threshold))
+        // x2 = (log(threshold/(1-threshold)) - w0 - w1*x1) / w2
+        const logOdds = Math.log(threshold / (1 - threshold));
+        
+        let started = false;
+        for (let x1 = minX; x1 <= maxX; x1 += 0.1) {
+          const x2 = (logOdds - weights.b - weights.w1 * x1) / weights.w2;
+          
+          if (x2 >= minY && x2 <= maxY) {
+            const x = padding + (x1 - minX) * scaleX;
+            const y = canvas.height - padding - (x2 - minY) * scaleY;
+            
+            if (!started) {
+              ctx.moveTo(x, y);
+              started = true;
+            } else {
+              ctx.lineTo(x, y);
+            }
+          }
+        }
+        ctx.stroke();
+        
+        // Add label to decision boundary
+        const midX1 = (minX + maxX) / 2;
+        const midX2 = (logOdds - weights.b - weights.w1 * midX1) / weights.w2;
+        if (midX2 >= minY && midX2 <= maxY) {
+          const x = padding + (midX1 - minX) * scaleX;
+          const y = canvas.height - padding - (midX2 - minY) * scaleY;
+          
+          ctx.fillStyle = '#7c3aed';
+          ctx.font = '14px Arial';
+          ctx.fillText('Decision Boundary', x + 10, y - 10);
+        }
+      }
+      
+      // Plot probability contours
+      if (showProbabilities) {
+        // Draw contour lines for different probabilities
+        const probabilities = [0.2, 0.4, 0.6, 0.8];
+        const colors = ['#fee2e2', '#fecaca', '#fca5a5', '#f87171'];
+        
+        for (let p = 0; p < probabilities.length; p++) {
+          const prob = probabilities[p];
+          const logOdds = Math.log(prob / (1 - prob));
+          
+          ctx.strokeStyle = colors[p];
+          ctx.lineWidth = 1;
+          ctx.globalAlpha = 0.7;
+          ctx.beginPath();
+          
+          let started = false;
+          for (let x1 = minX; x1 <= maxX; x1 += 0.1) {
+            const x2 = (logOdds - weights.b - weights.w1 * x1) / weights.w2;
+            
+            if (x2 >= minY && x2 <= maxY) {
+              const x = padding + (x1 - minX) * scaleX;
+              const y = canvas.height - padding - (x2 - minY) * scaleY;
+              
+              if (!started) {
+                ctx.moveTo(x, y);
+                started = true;
+              } else {
+                ctx.lineTo(x, y);
+              }
+            }
+          }
+          ctx.stroke();
+          ctx.globalAlpha = 1.0;
+        }
+      }
+      
+      // Plot data points
+      data.forEach((p, index) => {
+        const x = padding + (p.hours - minX) * scaleX;
+        const y = canvas.height - padding - (p.grade - minY) * scaleY;
+        
+        // Calculate probability for this point
+        const z = weights.b + weights.w1 * p.hours + weights.w2 * p.grade;
+        const prob = sigmoid(z);
+        const predicted = prob >= threshold ? 1 : 0;
+        
+        // Different colors for different classes
+        if (p.result === 1) {
+          // Actual passed (circle)
+          ctx.beginPath();
+          ctx.arc(x, y, 8, 0, 2 * Math.PI);
+          ctx.fillStyle = predicted === 1 ? '#10b981' : '#f87171'; // Green if correct, red if incorrect
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        } else {
+          // Actual failed (square)
+          ctx.fillStyle = predicted === 0 ? '#3b82f6' : '#f87171'; // Blue if correct, red if incorrect
+          ctx.fillRect(x - 6, y - 6, 12, 12);
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x - 6, y - 6, 12, 12);
+        }
+        
+        // Add probability label
+        if (showProbabilities) {
+          ctx.fillStyle = '#1f2937';
+          ctx.font = '10px Arial';
+          ctx.fillText(prob.toFixed(2), x + 10, y - 10);
+        }
+        
+        // Add index label
+        ctx.fillStyle = '#1f2937';
+        ctx.font = '12px Arial';
+        ctx.fillText((index + 1).toString(), x + 12, y + 5);
+      });
+      
+      // Add legend
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(canvas.width - 200, padding, 180, 120);
+      ctx.strokeStyle = '#e5e7eb';
+      ctx.strokeRect(canvas.width - 200, padding, 180, 120);
+      
+      // Legend title
+      ctx.fillStyle = '#1f2937';
+      ctx.font = '14px Arial';
+      ctx.fillText('Legend', canvas.width - 190, padding + 20);
+      
+      // Actual Passed (Correct)
+      ctx.beginPath();
+      ctx.arc(canvas.width - 180, padding + 40, 6, 0, 2 * Math.PI);
+      ctx.fillStyle = '#10b981';
+      ctx.fill();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = '#1f2937';
+      ctx.font = '12px Arial';
+      ctx.fillText('Actual Passed (Correct)', canvas.width - 165, padding + 44);
+      
+      // Actual Failed (Correct)
+      ctx.fillStyle = '#3b82f6';
+      ctx.fillRect(canvas.width - 186, padding + 62, 12, 12);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(canvas.width - 186, padding + 62, 12, 12);
+      ctx.fillStyle = '#1f2937';
+      ctx.fillText('Actual Failed (Correct)', canvas.width - 165, padding + 72);
+      
+      // Incorrect predictions
+      ctx.fillStyle = '#f87171';
+      ctx.fillRect(canvas.width - 186, padding + 88, 12, 12);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(canvas.width - 186, padding + 88, 12, 12);
+      ctx.fillStyle = '#1f2937';
+      ctx.fillText('Incorrect Predictions', canvas.width - 165, padding + 98);
+      
+      // Add title
+      ctx.fillStyle = '#1f2937';
+      ctx.font = '16px Arial';
+      ctx.fillText('Logistic Regression: Exam Pass/Fail Prediction', padding, 25);
+    }
+    
+    // Train logistic regression using gradient descent
+    function trainLogisticRegression() {
+      const button = document.getElementById('train-model');
+      const originalText = button.innerHTML;
+      button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Training...';
+      button.disabled = true;
+      isTraining = true;
+      
+      // Extract features and labels
+      const X = data.map(p => [p.hours, p.grade]);
+      const y = data.map(p => p.result);
+      
+      // Initialize weights
+      let w0 = 0; // bias
+      let w1 = 0; // study hours weight
+      let w2 = 0; // previous grade weight
+      
+      // Learning parameters
+      const learningRate = 0.1;
+      const iterations = 100;
+      let currentIteration = 0;
+      
+      // Animation function
+      function animateTraining() {
+        if (currentIteration >= iterations || !isTraining) {
+          // Training complete
+          weights.b = w0;
+          weights.w1 = w1;
+          weights.w2 = w2;
+          
+          document.getElementById('weight-b').value = w0;
+          document.getElementById('weight-b-value').textContent = w0.toFixed(2);
+          document.getElementById('weight-w1').value = w1;
+          document.getElementById('weight-w1-value').textContent = w1.toFixed(2);
+          document.getElementById('weight-w2').value = w2;
+          document.getElementById('weight-w2-value').textContent = w2.toFixed(2);
+          
+          button.innerHTML = originalText;
+          button.disabled = false;
+          isTraining = false;
+          
+          updateDatasetTable();
+          drawLogisticRegression();
+          return;
+        }
+        
+        // Calculate predictions
+        const predictions = X.map(x => {
+          const z = w0 + w1 * x[0] + w2 * x[1];
+          return sigmoid(z);
+        });
+        
+        // Calculate gradients
+        let dw0 = 0;
+        let dw1 = 0;
+        let dw2 = 0;
+        
+        for (let i = 0; i < X.length; i++) {
+          const error = predictions[i] - y[i];
+          dw0 += error;
+          dw1 += error * X[i][0];
+          dw2 += error * X[i][1];
+        }
+        
+        // Average gradients
+        dw0 /= X.length;
+        dw1 /= X.length;
+        dw2 /= X.length;
+        
+        // Update weights
+        w0 -= learningRate * dw0;
+        w1 -= learningRate * dw1;
+        w2 -= learningRate * dw2;
+        
+        // Update UI every 5 iterations
+        if (currentIteration % 5 === 0) {
+          weights.b = w0;
+          weights.w1 = w1;
+          weights.w2 = w2;
+          
+          updateDatasetTable();
+          drawLogisticRegression();
+        }
+        
+        currentIteration++;
+        setTimeout(animateTraining, 50); // Slow down animation for visibility
+      }
+      
+      // Start training
+      animateTraining();
+    }
+  </script>
+</body>
+</html>

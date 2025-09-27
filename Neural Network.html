@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Neural Networks | ML AlgoNation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --secondary: #7c3aed;
+      --accent: #f59e0b;
+      --dark: #1f2937;
+      --light: #f9fafb;
+      --gray: #6b7280;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --info: #3b82f6;
+      --nn: #4f46e5;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: var(--dark);
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      min-height: 100vh;
+    }
+    
+    header {
+      background: linear-gradient(120deg, var(--nn), var(--primary));
+      color: white;
+      padding: 2rem 0;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    header::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.1)"/></svg>');
+      background-size: cover;
+    }
+    
+    header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      position: relative;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    main {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    
+    .lesson {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .lesson:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+    
+    h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      color: var(--nn);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 3px solid var(--primary-light);
+    }
+    
+    h3 {
+      font-size: 1.4rem;
+      margin: 1.5rem 0 1rem;
+      color: var(--secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    p {
+      margin-bottom: 1.25rem;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+    
+    code {
+      background: #f1f5f9;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-family: 'Courier New', Courier, monospace;
+      font-weight: 500;
+      color: var(--nn);
+    }
+    
+    .dataset-container {
+      margin: 1.5rem 0;
+      overflow-x: auto;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    th {
+      background: linear-gradient(120deg, var(--nn), var(--primary));
+      color: white;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+    
+    tr:hover {
+      background-color: #f1f5f9;
+      transition: background-color 0.2s ease;
+    }
+    
+    .demo {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .demo:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+    
+    #prediction {
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: 600;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      min-height: 3rem;
+    }
+    
+    .prediction-fraud {
+      background: linear-gradient(120deg, #fee2e2, #fecaca);
+      color: var(--danger);
+      border-left: 4px solid var(--danger);
+    }
+    
+    .prediction-legit {
+      background: linear-gradient(120deg, #dcfce7, #bbf7d0);
+      color: var(--success);
+      border-left: 4px solid var(--success);
+    }
+    
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin: 2rem 0;
+      justify-content: center;
+    }
+    
+    .control-group {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      min-width: 250px;
+    }
+    
+    .control-group h4 {
+      margin-bottom: 1rem;
+      color: var(--dark);
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    button:hover {
+      background: var(--primary-light);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3);
+    }
+    
+    button.secondary {
+      background: var(--secondary);
+    }
+    
+    button.secondary:hover {
+      background: #8b5cf6;
+      box-shadow: 0 4px 8px rgba(124, 58, 237, 0.3);
+    }
+    
+    button.warning {
+      background: var(--warning);
+    }
+    
+    button.warning:hover {
+      background: #d97706;
+      box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+    }
+    
+    input, select, .slider-container {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 1rem;
+      margin-top: 0.5rem;
+      transition: border-color 0.3s ease;
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+    
+    .slider-container {
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .slider-container input[type="range"] {
+      width: 100%;
+      padding: 0;
+      margin: 0;
+      border: none;
+      height: 24px;
+    }
+    
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--gray);
+    }
+    
+    .navigation {
+      display: flex;
+      justify-content: space-between;
+      margin: 2rem 0;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    
+    .card-btn, .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+    
+    .card-btn {
+      background: white;
+      color: var(--dark);
+      border: 2px solid #e5e7eb;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .card-btn:hover {
+      background: #f8fafc;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .cta-btn {
+      background: linear-gradient(120deg, var(--nn), var(--primary));
+      color: white;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+    
+    .cta-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+    }
+    
+    footer {
+      text-align: center;
+      padding: 2rem;
+      background: var(--dark);
+      color: white;
+      margin-top: 3rem;
+    }
+    
+    .math-explanation {
+      background: #f0f9ff;
+      border: 2px solid #bae6fd;
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 2rem 0;
+      position: relative;
+    }
+    
+    .math-explanation::before {
+      content: "Neural Network Concepts";
+      position: absolute;
+      top: -12px;
+      left: 20px;
+      background: var(--primary);
+      color: white;
+      padding: 0.25rem 1rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    
+    .formula {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+      text-align: center;
+      font-family: 'Courier New', monospace;
+      font-size: 1.2rem;
+      border-left: 4px solid var(--primary);
+    }
+    
+    .step {
+      margin: 1.5rem 0;
+      padding-left: 1.5rem;
+      border-left: 3px solid var(--accent);
+      position: relative;
+    }
+    
+    .step::before {
+      content: "Step";
+      position: absolute;
+      left: -15px;
+      top: 0;
+      background: var(--accent);
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+    
+    .tabs {
+      display: flex;
+      margin: 2rem 0;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .tab {
+      padding: 1rem 2rem;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--gray);
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s ease;
+    }
+    
+    .tab.active {
+      color: var(--primary);
+      border-bottom: 3px solid var(--primary);
+    }
+    
+    .tab-content {
+      display: none;
+      padding: 2rem 0;
+    }
+    
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      border-bottom: 1px dotted var(--primary);
+      cursor: help;
+    }
+    
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 250px;
+      background-color: var(--dark);
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 10px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+    
+    .tooltip .tooltiptext::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: var(--dark) transparent transparent transparent;
+    }
+    
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    .network-visualization {
+      background: #f3f4f6;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 2rem 0;
+      overflow: auto;
+      text-align: center;
+    }
+    
+    .network-layers {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 200px;
+      margin: 1.5rem 0;
+      position: relative;
+    }
+    
+    .layer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 10;
+    }
+    
+    .neuron {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--primary);
+      margin: 8px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    
+    .input-layer .neuron {
+      background: var(--info);
+    }
+    
+    .hidden-layer .neuron {
+      background: var(--primary);
+    }
+    
+    .output-layer .neuron {
+      background: var(--success);
+    }
+    
+    .connections {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+    
+    .connection {
+      position: absolute;
+      background: rgba(99, 102, 241, 0.3);
+      transform-origin: 0 0;
+    }
+    
+    .evaluation-metrics {
+      background: #f3f4f6;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 2rem 0;
+    }
+    
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .metric-card {
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .metric-card h5 {
+      color: var(--secondary);
+      margin-bottom: 0.5rem;
+    }
+    
+    .metric-card .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .python-code {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 1.5rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin: 1.5rem 0;
+    }
+    
+    .comparison-table {
+      margin: 2rem 0;
+    }
+    
+    .comparison-table table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .comparison-table th, 
+    .comparison-table td {
+      padding: 1rem;
+      text-align: center;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .comparison-table th {
+      background: linear-gradient(120deg, var(--nn), var(--primary));
+      color: white;
+    }
+    
+    .comparison-table tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+    
+    .comparison-table tr:hover {
+      background-color: #f1f5f9;
+    }
+    
+    .comparison-table .highlight {
+      background-color: #dbeafe;
+      font-weight: bold;
+    }
+    
+    .fraud-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    
+    .fraud-yes {
+      background-color: var(--danger);
+    }
+    
+    .fraud-no {
+      background-color: var(--success);
+    }
+    
+    @media (max-width: 768px) {
+      header h1 {
+        font-size: 2rem;
+      }
+      
+      .lesson, .demo {
+        padding: 1.5rem;
+      }
+      
+      .navigation {
+        flex-direction: column;
+      }
+      
+      .card-btn, .cta-btn {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .controls {
+        flex-direction: column;
+      }
+      
+      .network-layers {
+        flex-direction: column;
+        height: auto;
+        gap: 2rem;
+      }
+      
+      .layer {
+        flex-direction: row;
+        gap: 1rem;
+        justify-content: center;
+      }
+    }
+    
+    #randomize-data {
+      margin-bottom: 10px;
+    }
+    
+    #add-point {
+      margin-top: 10px;
+    }
+    
+    .secondary {
+      margin-top: 10px;
+    }
+    
+    #retrain-model {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><i class="fas fa-brain"></i> Neural Networks</h1>
+    <p>Discover the powerful deep learning algorithm that mimics the human brain</p>
+  </header>
+
+  <main>
+    <div class="tabs">
+      <div class="tab active" data-tab="concept">Concept</div>
+      <div class="tab" data-tab="math">Mathematics</div>
+      <div class="tab" data-tab="implementation">Implementation</div>
+      <div class="tab" data-tab="comparison">vs. Traditional ML</div>
+    </div>
+
+    <div class="tab-content active" id="concept">
+      <section class="lesson">
+        <h2><i class="fas fa-lightbulb"></i> What is a Neural Network?</h2>
+        <p>
+          A Neural Network is a machine learning model inspired by the human brain, consisting of interconnected layers of artificial neurons.
+          It can learn complex patterns and relationships in data through a process called <strong>training</strong>, making it extremely powerful for tasks like image recognition, natural language processing, and fraud detection.
+        </p>
+        
+        <p>
+          Unlike traditional ML algorithms that use hand-crafted features, neural networks <strong>automatically learn features</strong> from raw data through multiple layers of processing, making them ideal for complex, high-dimensional problems.
+        </p>
+
+        <div class="math-explanation">
+          <h3>How Neural Networks Work</h3>
+          <div class="step">
+            <h3>Step 1: Input Layer</h3>
+            <p>Raw data enters the network through the input layer, where each neuron represents a feature.</p>
+          </div>
+          
+          <div class="step">
+            <h3>Step 2: Hidden Layers</h3>
+            <p>Data passes through one or more hidden layers, where neurons apply weights, biases, and activation functions to transform the input.</p>
+          </div>
+          
+          <div class="step">
+            <h3>Step 3: Output Layer</h3>
+            <p>The final layer produces the prediction (classification or regression) based on the processed information.</p>
+          </div>
+          
+          <div class="step">
+            <h3>Step 4: Backpropagation</h3>
+            <p>The network learns by comparing predictions to actual values and adjusting weights through backpropagation and gradient descent.</p>
+          </div>
+        </div>
+
+        <h3><i class="fas fa-credit-card"></i> Sample Dataset: Credit Card Fraud Detection</h3>
+        <p>We'll use a credit card transaction dataset to detect fraudulent transactions. This dataset is highly imbalanced (99.8% legitimate, 0.2% fraud), making it perfect for neural networks:</p>
+        
+        <div class="dataset-container">
+          <table id="dataset-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Amount</th>
+                <th>V1</th>
+                <th>V2</th>
+                <th>V3</th>
+                <th>V4</th>
+                <th>Fraud</th>
+              </tr>
+            </thead>
+            <tbody id="dataset-body">
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="controls">
+          <div class="control-group">
+            <h4>Add New Transaction</h4>
+            <input type="number" id="new-amount" placeholder="Transaction Amount" step="0.01" min="0" max="10000" value="50.00">
+            <input type="number" id="new-v1" placeholder="V1 (PCA)" step="0.01" min="-50" max="50" value="-1.5">
+            <input type="number" id="new-v2" placeholder="V2 (PCA)" step="0.01" min="-50" max="50" value="2.3">
+            <input type="number" id="new-v3" placeholder="V3 (PCA)" step="0.01" min="-50" max="50" value="0.8">
+            <input type="number" id="new-v4" placeholder="V4 (PCA)" step="0.01" min="-50" max="50" value="-3.1">
+            <select id="new-fraud">
+              <option value="0">Legitimate</option>
+              <option value="1">Fraudulent</option>
+            </select>
+            <button id="add-point"><i class="fas fa-plus"></i> Add Transaction</button>
+          </div>
+          
+          <div class="control-group">
+            <h4>Dataset Operations</h4>
+            <button id="randomize-data"><i class="fas fa-random"></i> Randomize Data</button>
+            <button id="reset-data" class="warning"><i class="fas fa-undo"></i> Reset Data</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="demo">
+        <h3><i class="fas fa-flask"></i> Interactive Neural Network Demo</h3>
+        <p>Enter credit card transaction details to predict if it's fraudulent:</p>
+        
+        <div class="controls">
+          <div class="control-group">
+            <label>Transaction Amount: 
+                   <input type="number" id="inputAmount" min="0" max="10000" step="0.01" value="50.00">
+            </label>
+            <label>V1 (PCA): 
+              <input type="number" id="inputV1" min="-50" max="50" step="0.01" value="-1.5">
+            </label>
+            <label>V2 (PCA): 
+              <input type="number" id="inputV2" min="-50" max="50" step="0.01" value="2.3">
+            </label>
+            <label>V3 (PCA): 
+              <input type="number" id="inputV3" min="-50" max="50" step="0.01" value="0.8">
+            </label>
+            <label>V4 (PCA): 
+              <input type="number" id="inputV4" min="-50" max="50" step="0.01" value="-3.1">
+            </label>
+            <button onclick="predict()" class="secondary"><i class="fas fa-magic"></i> Predict Fraud</button>
+          </div>
+          
+          <div class="control-group">
+            <h4>Neural Network Parameters</h4>
+            <div class="slider-container">
+              <label>Hidden Layers:</label>
+              <input type="range" id="hiddenLayers" min="1" max="3" step="1" value="2">
+              <div class="slider-label">
+                <span>1</span>
+                <span id="layers-value">2</span>
+                <span>3</span>
+              </div>
+            </div>
+            
+            <div class="slider-container">
+              <label>Neurons per Layer:</label>
+              <input type="range" id="neurons" min="16" max="128" step="16" value="64">
+              <div class="slider-label">
+                <span>16</span>
+                <span id="neurons-value">64</span>
+                <span>128</span>
+              </div>
+            </div>
+            
+            <label>Activation Function: 
+              <select id="activation">
+                <option value="relu" selected>ReLU</option>
+                <option value="tanh">Tanh</option>
+                <option value="sigmoid">Sigmoid</option>
+              </select>
+            </label>
+            <button id="retrain-model"><i class="fas fa-sync"></i> Retrain Network</button>
+          </div>
+        </div>
+        
+        <div id="prediction">
+          Enter transaction details and click "Predict Fraud" to see the neural network prediction
+        </div>
+        
+        <div class="network-visualization">
+          <h3>Neural Network Architecture</h3>
+          <div class="network-layers" id="network-visualization">
+            <!-- Network will be rendered here -->
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab-content" id="math">
+      <section class="lesson">
+        <h2><i class="fas fa-calculator"></i> Mathematical Foundation</h2>
+        <p>
+          Neural networks learn through forward propagation and backpropagation:
+        </p>
+        
+        <div class="math-explanation">
+          <div class="step">
+            <h3>1. Forward Propagation</h3>
+            <p>Compute the output of each layer:</p>
+            <div class="formula">
+              z<sup>[l]</sup> = W<sup>[l]</sup>a<sup>[l-1]</sup> + b<sup>[l]</sup><br>
+              a<sup>[l]</sup> = g<sup>[l]</sup>(z<sup>[l]</sup>)
+            </div>
+            <p>Where W is weights, b is biases, a is activations, and g is the activation function.</p>
+          </div>
+          
+          <div class="step">
+            <h3>2. Loss Function</h3>
+            <p>For binary classification (fraud detection):</p>
+            <div class="formula">
+              L(ŷ, y) = -[y log(ŷ) + (1-y) log(1-ŷ)]
+            </div>
+            <p>This is the binary cross-entropy loss.</p>
+          </div>
+          
+          <div class="step">
+            <h3>3. Backpropagation</h3>
+            <p>Compute gradients using the chain rule:</p>
+            <div class="formula">
+              dW<sup>[l]</sup> = ∂L/∂W<sup>[l]</sup><br>
+              db<sup>[l]</sup> = ∂L/∂b<sup>[l]</sup>
+            </div>
+            <p>These gradients are used to update weights via gradient descent.</p>
+          </div>
+          
+          <div class="step">
+            <h3>4. Gradient Descent</h3>
+            <p>Update weights to minimize loss:</p>
+            <div class="formula">
+              W<sup>[l]</sup> := W<sup>[l]</sup> - α dW<sup>[l]</sup><br>
+              b<sup>[l]</sup> := b<sup>[l]</sup> - α db<sup>[l]</sup>
+            </div>
+            <p>Where α is the learning rate.</p>
+          </div>
+        </div>
+        
+        <h3>Key Components Explained</h3>
+        <ul style="margin-left: 1.5rem; margin-bottom: 1.5rem;">
+          <li><strong>Activation Functions</strong>: Introduce non-linearity (ReLU, Sigmoid, Tanh)</li>
+          <li><strong>Loss Functions</strong>: Measure prediction error (Cross-entropy, MSE)</li>
+          <li><strong>Optimizers</strong>: Update weights (SGD, Adam, RMSprop)</li>
+          <li><strong>Regularization</strong>: Prevent overfitting (Dropout, L1/L2, Batch Normalization)</li>
+          <li><strong>Learning Rate</strong>: Controls step size during optimization</li>
+        </ul>
+      </section>
+    </div>
+
+    <div class="tab-content" id="implementation">
+      <section class="lesson">
+        <h2><i class="fas fa-code"></i> Implementation in Python with TensorFlow</h2>
+        <p>Here's how to implement a neural network for fraud detection using TensorFlow/Keras:</p>
+        
+        <div class="python-code">
+          <pre><code># Import libraries
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import classification_report, confusion_matrix
+import pandas as pd
+import numpy as np
+
+# Load dataset
+data = pd.read_csv('creditcard.csv')
+X = data.drop('Class', axis=1)
+y = data['Class']
+
+# Handle imbalanced data with SMOTE or class weights
+from sklearn.utils.class_weight import compute_class_weight
+class_weights = compute_class_weight('balanced', classes=np.unique(y), y=y)
+class_weight_dict = dict(enumerate(class_weights))
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+
+# Scale features
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Build neural network
+model = Sequential([
+    Dense(64, activation='relu', input_shape=(X_train_scaled.shape[1],)),
+    Dropout(0.3),
+    Dense(32, activation='relu'),
+    Dropout(0.3),
+    Dense(16, activation='relu'),
+    Dense(1, activation='sigmoid')  # Binary classification
+])
+
+# Compile model
+model.compile(
+    optimizer='adam',
+    loss='binary_crossentropy',
+    metrics=['accuracy', 'precision', 'recall']
+)
+
+# Train model
+history = model.fit(
+    X_train_scaled, y_train,
+    epochs=20,
+    batch_size=32,
+    validation_split=0.2,
+    class_weight=class_weight_dict,
+    verbose=1
+)
+
+# Make predictions
+y_pred_proba = model.predict(X_test_scaled)
+y_pred = (y_pred_proba > 0.5).astype(int)
+
+# Evaluate model
+print(classification_report(y_test, y_pred))
+print("Confusion Matrix:")
+print(confusion_matrix(y_test, y_pred))</code></pre>
+        </div>
+        
+        <div class="evaluation-metrics">
+          <h3>Model Evaluation Metrics (Fraud Detection)</h3>
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <h5>Accuracy</h5>
+              <div class="value">99.9%</div>
+            </div>
+            <div class="metric-card">
+              <h5>Precision</h5>
+              <div class="value">87.2%</div>
+            </div>
+            <div class="metric-card">
+              <h5>Recall</h5>
+              <div class="value">92.5%</div>
+            </div>
+            <div class="metric-card">
+              <h5>F1-Score</h5>
+              <div class="value">89.8%</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="math-explanation">
+          <h3>Important Note: Imbalanced Data</h3>
+          <p>Fraud detection datasets are highly imbalanced. Accuracy is misleading - focus on precision, recall, and F1-score instead!</p>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab-content" id="comparison">
+      <section class="lesson">
+        <h2><i class="fas fa-balance-scale"></i> Neural Networks vs. Traditional ML</h2>
+        <p>Neural networks take a fundamentally different approach compared to your previous algorithms:</p>
+        
+        <div class="comparison-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Traditional ML (SVM, Trees)</th>
+                <th>Neural Networks</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Data Requirements</td>
+                <td>Work well with small datasets</td>
+                <td class="highlight">Need large datasets</td>
+              </tr>
+              <tr>
+                <td>Feature Engineering</td>
+                <td class="highlight">Requires manual feature engineering</td>
+                <td>Learns features automatically</td>
+              </tr>
+              <tr>
+                <td>Interpretability</td>
+                <td class="highlight">High (feature importance)</td>
+                <td>Low ("black box")</td>
+              </tr>
+              <tr>
+                <td>Training Time</td>
+                <td class="highlight">Fast</td>
+                <td>Slow (requires GPU for large models)</td>
+              </tr>
+              <tr>
+                <td>Performance</td>
+                <td>Good for tabular data</td>
+                <td class="highlight">Excellent for complex patterns</td>
+              </tr>
+              <tr>
+                <td>Hardware</td>
+                <td class="highlight">CPU sufficient</td>
+                <td>GPU recommended</td>
+              </tr>
+              <tr>
+                <td>Best For</td>
+                <td>Tabular data, small datasets</td>
+                <td class="highlight">Images, text, complex patterns</td>
+              </tr>
+              <tr>
+                <td>Hyperparameters</td>
+                <td>Fewer to tune</td>
+                <td class="highlight">Many to optimize</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <h3>When to Use Which?</h3>
+        <div class="step">
+          <h3>Use Traditional ML when:</h3>
+          <ul style="margin-left: 1.5rem;">
+            <li>You have small to medium datasets (< 100K samples)</li>
+            <li>Interpretability is important</li>
+            <li>You have tabular data</li>
+            <li>You need fast training and inference</li>
+            <li>You have limited computational resources</li>
+          </ul>
+        </div>
+        
+        <div class="step">
+          <h3>Use Neural Networks when:</h3>
+          <ul style="margin-left: 1.5rem;">
+            <li>You have large datasets (> 100K samples)</li>
+            <li>Your data has complex patterns (images, text, audio)</li>
+            <li>Feature engineering is difficult</li>
+            <li>Maximum performance is critical</li>
+            <li>You have access to GPUs</li>
+          </ul>
+        </div>
+        
+        <div class="math-explanation">
+          <h3>Practical Tip: Start Simple!</h3>
+          <p>Always start with traditional ML algorithms before trying neural networks. They're often sufficient and much easier to implement and interpret!</p>
+        </div>
+      </section>
+    </div>
+  </main>
+ <section class="navigation">
+      <a href="KNN.html" class="card-btn" target="_blank"><i class="fas fa-backward"></i> Previous: KNN</a>
+      <!--a href="KNN.html" class="cta-btn" target="_blank"><i class="fas fa-forward"></i> Next: Neural Network</a-->
+    </section>
+  </main>
+
+  <footer>
+    <p>Simplified Machine Learning  Concepts Through Interactive Examples</p>
+    <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">&copy; 2025 Machine Learning | AlgoNation • Learn by doing</p>
+  </footer>
+  <script>
+    // Sample credit card fraud data
+    let fraudData = [
+      {id: 1, amount: 15.99, v1: -1.2, v2: 2.1, v3: 0.5, v4: -2.8, fraud: 0},
+      {id: 2, amount: 25.50, v1: -0.8, v2: 1.5, v3: -0.3, v4: -1.2, fraud: 0},
+      {id: 3, amount: 100.00, v1: 3.2, v2: -4.1, v3: 2.8, v4: 5.3, fraud: 1},
+      {id: 4, amount: 5.99, v1: -2.1, v2: 1.8, v3: 0.2, v4: -3.1, fraud: 0},
+      {id: 5, amount: 50.00, v1: -1.5, v2: 2.3, v3: 0.8, v4: -3.1, fraud: 0},
+      {id: 6, amount: 200.00, v1: 4.1, v2: -5.2, v3: 3.1, v4: 6.2, fraud: 1},
+      {id: 7, amount: 12.50, v1: -0.9, v2: 1.2, v3: -0.1, v4: -1.5, fraud: 0},
+      {id: 8, amount: 75.00, v1: -1.8, v2: 2.5, v3: 0.6, v4: -2.9, fraud: 0},
+      {id: 9, amount: 300.00, v1: 5.3, v2: -6.1, v3: 4.2, v4: 7.1, fraud: 1},
+      {id: 10, amount: 8.99, v1: -1.3, v2: 1.9, v3: 0.4, v4: -2.7, fraud: 0}
+    ];
+
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+      renderDataset();
+      setupEventListeners();
+      setupSliders();
+      renderNetworkVisualization();
+    });
+
+    // Render dataset table
+    function renderDataset() {
+      const tbody = document.getElementById('dataset-body');
+      tbody.innerHTML = '';
+      
+      fraudData.forEach(transaction => {
+        const row = document.createElement('tr');
+        const fraudClass = transaction.fraud ? 'fraud-yes' : 'fraud-no';
+        const fraudText = transaction.fraud ? 'Fraud' : 'Legitimate';
+        
+        row.innerHTML = `
+          <td>${transaction.id}</td>
+          <td>$${transaction.amount.toFixed(2)}</td>
+          <td>${transaction.v1.toFixed(2)}</td>
+          <td>${transaction.v2.toFixed(2)}</td>
+          <td>${transaction.v3.toFixed(2)}</td>
+          <td>${transaction.v4.toFixed(2)}</td>
+          <td><span class="fraud-indicator ${fraudClass}"></span>${fraudText}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // Setup event listeners
+    function setupEventListeners() {
+      // Tab switching
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          // Remove active class from all tabs and content
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          
+          // Add active class to clicked tab
+          tab.classList.add('active');
+          
+          // Show corresponding content
+          const tabId = tab.getAttribute('data-tab');
+          document.getElementById(tabId).classList.add('active');
+        });
+      });
+      
+      // Add new data point
+      document.getElementById('add-point').addEventListener('click', addDataPoint);
+      
+      // Randomize data
+      document.getElementById('randomize-data').addEventListener('click', randomizeData);
+      
+      // Reset data
+      document.getElementById('reset-data').addEventListener('click', resetData);
+      
+      // Retrain model
+      document.getElementById('retrain-model').addEventListener('click', retrainModel);
+    }
+
+    // Setup sliders
+    function setupSliders() {
+      const layersSlider = document.getElementById('hiddenLayers');
+      const neuronsSlider = document.getElementById('neurons');
+      const layersValue = document.getElementById('layers-value');
+      const neuronsValue = document.getElementById('neurons-value');
+      
+      layersSlider.addEventListener('input', () => {
+        layersValue.textContent = layersSlider.value;
+        renderNetworkVisualization();
+      });
+      
+      neuronsSlider.addEventListener('input', () => {
+        neuronsValue.textContent = neuronsSlider.value;
+        renderNetworkVisualization();
+      });
+    }
+
+    // Render network visualization
+    function renderNetworkVisualization() {
+      const container = document.getElementById('network-visualization');
+      container.innerHTML = '';
+      
+      const layers = parseInt(document.getElementById('hiddenLayers').value);
+      const neurons = parseInt(document.getElementById('neurons').value);
+      
+      // Create connections container
+      const connections = document.createElement('div');
+      connections.className = 'connections';
+      container.appendChild(connections);
+      
+      // Create layers
+      const layerContainer = document.createElement('div');
+      layerContainer.style.display = 'flex';
+      layerContainer.style.justifyContent = 'space-around';
+      layerContainer.style.width = '100%';
+      layerContainer.style.position = 'relative';
+      layerContainer.style.zIndex = '10';
+      
+      // Input layer (5 features)
+      const inputLayer = document.createElement('div');
+      inputLayer.className = 'layer input-layer';
+      for (let i = 0; i < 5; i++) {
+        const neuron = document.createElement('div');
+        neuron.className = 'neuron';
+        neuron.textContent = 'I';
+        inputLayer.appendChild(neuron);
+      }
+      layerContainer.appendChild(inputLayer);
+      
+      // Hidden layers
+      for (let l = 0; l < layers; l++) {
+        const hiddenLayer = document.createElement('div');
+        hiddenLayer.className = 'layer hidden-layer';
+        // Show fewer neurons for visualization
+        const displayNeurons = Math.min(4, Math.floor(neurons / 16));
+        for (let i = 0; i < displayNeurons; i++) {
+          const neuron = document.createElement('div');
+          neuron.className = 'neuron';
+          neuron.textContent = 'H';
+          hiddenLayer.appendChild(neuron);
+        }
+        if (neurons > 64) {
+          const ellipsis = document.createElement('div');
+          ellipsis.textContent = '...';
+          ellipsis.style.color = 'var(--gray)';
+          hiddenLayer.appendChild(ellipsis);
+        }
+        layerContainer.appendChild(hiddenLayer);
+      }
+      
+      // Output layer (1 neuron for binary classification)
+      const outputLayer = document.createElement('div');
+      outputLayer.className = 'layer output-layer';
+      const outputNeuron = document.createElement('div');
+      outputNeuron.className = 'neuron';
+      outputNeuron.textContent = 'O';
+      outputLayer.appendChild(outputNeuron);
+      layerContainer.appendChild(outputLayer);
+      
+      container.appendChild(layerContainer);
+    }
+
+    // Add new data point
+    function addDataPoint() {
+      const amount = parseFloat(document.getElementById('new-amount').value);
+      const v1 = parseFloat(document.getElementById('new-v1').value);
+      const v2 = parseFloat(document.getElementById('new-v2').value);
+      const v3 = parseFloat(document.getElementById('new-v3').value);
+      const v4 = parseFloat(document.getElementById('new-v4').value);
+      const fraud = parseInt(document.getElementById('new-fraud').value);
+      
+      if (isNaN(amount) || isNaN(v1) || isNaN(v2) || isNaN(v3) || isNaN(v4)) {
+        alert('Please enter valid numbers for all fields');
+        return;
+      }
+      
+      const newId = fraudData.length > 0 ? Math.max(...fraudData.map(t => t.id)) + 1 : 1;
+      fraudData.push({
+        id: newId,
+        amount: amount,
+        v1: v1,
+        v2: v2,
+        v3: v3,
+        v4: v4,
+        fraud: fraud
+      });
+      
+      renderDataset();
+    }
+
+    // Randomize data
+    function randomizeData() {
+      fraudData = fraudData.map(transaction => ({
+        ...transaction,
+        amount: (Math.random() * 1000).toFixed(2),
+        v1: (Math.random() * 100 - 50).toFixed(2),
+        v2: (Math.random() * 100 - 50).toFixed(2),
+        v3: (Math.random() * 100 - 50).toFixed(2),
+        v4: (Math.random() * 100 - 50).toFixed(2),
+        fraud: Math.random() > 0.95 ? 1 : 0 // 5% fraud rate for demo
+      }));
+      renderDataset();
+    }
+        
+    // Reset data
+    function resetData() {
+      fraudData = [
+        {id: 1, amount: 15.99, v1: -1.2, v2: 2.1, v3: 0.5, v4: -2.8, fraud: 0},
+        {id: 2, amount: 25.50, v1: -0.8, v2: 1.5, v3: -0.3, v4: -1.2, fraud: 0},
+        {id: 3, amount: 100.00, v1: 3.2, v2: -4.1, v3: 2.8, v4: 5.3, fraud: 1},
+        {id: 4, amount: 5.99, v1: -2.1, v2: 1.8, v3: 0.2, v4: -3.1, fraud: 0},
+        {id: 5, amount: 50.00, v1: -1.5, v2: 2.3, v3: 0.8, v4: -3.1, fraud: 0},
+        {id: 6, amount: 200.00, v1: 4.1, v2: -5.2, v3: 3.1, v4: 6.2, fraud: 1},
+        {id: 7, amount: 12.50, v1: -0.9, v2: 1.2, v3: -0.1, v4: -1.5, fraud: 0},
+        {id: 8, amount: 75.00, v1: -1.8, v2: 2.5, v3: 0.6, v4: -2.9, fraud: 0},
+        {id: 9, amount: 300.00, v1: 5.3, v2: -6.1, v3: 4.2, v4: 7.1, fraud: 1},
+        {id: 10, amount: 8.99, v1: -1.3, v2: 1.9, v3: 0.4, v4: -2.7, fraud: 0}
+      ];
+      renderDataset();
+    }
+
+    // Retrain model
+    function retrainModel() {
+      // In a real implementation, this would retrain the model
+      // For this demo, we'll just show a success message
+      document.getElementById('prediction').textContent = 'Neural network retrained successfully!';
+      document.getElementById('prediction').className = 'prediction-legit';
+      renderNetworkVisualization();
+    }
+
+    // Predict function
+    function predict() {
+      const amount = parseFloat(document.getElementById('inputAmount').value);
+      const v1 = parseFloat(document.getElementById('inputV1').value);
+      const v2 = parseFloat(document.getElementById('inputV2').value);
+      const v3 = parseFloat(document.getElementById('inputV3').value);
+      const v4 = parseFloat(document.getElementById('inputV4').value);
+      
+      if (isNaN(amount) || isNaN(v1) || isNaN(v2) || isNaN(v3) || isNaN(v4)) {
+        alert('Please enter valid numbers for all fields');
+        return;
+      }
+      
+      // Simple prediction logic for demo (in reality, this would use the trained model)
+      let isFraud = false;
+      
+      // High amount + extreme PCA values = likely fraud
+      if (amount > 150 && (Math.abs(v1) > 3 || Math.abs(v2) > 4 || Math.abs(v3) > 3 || Math.abs(v4) > 5)) {
+        isFraud = true;
+      }
+      
+      const predictionDiv = document.getElementById('prediction');
+      if (isFraud) {
+        predictionDiv.textContent = `Neural Network Prediction: FRAUDULENT TRANSACTION!`;
+        predictionDiv.className = 'prediction-fraud';
+      } else {
+        predictionDiv.textContent = `Neural Network Prediction: LEGITIMATE TRANSACTION`;
+        predictionDiv.className = 'prediction-legit';
+      }
+    }
+  </script>
+</body>
+</html>

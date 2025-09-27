@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>K Nearest Neighbors | ML AlgoNation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --secondary: #7c3aed;
+      --accent: #f59e0b;
+      --dark: #1f2937;
+      --light: #f9fafb;
+      --gray: #6b7280;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --info: #3b82f6;
+      --knn: #ec4899;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: var(--dark);
+      background: linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%);
+      min-height: 100vh;
+    }
+    
+    header {
+      background: linear-gradient(120deg, var(--knn), var(--primary));
+      color: white;
+      padding: 2rem 0;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    header::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.1)"/></svg>');
+      background-size: cover;
+    }
+    
+    header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      position: relative;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    main {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    
+    .lesson {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .lesson:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+    
+    h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      color: var(--knn);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 3px solid var(--primary-light);
+    }
+    
+    h3 {
+      font-size: 1.4rem;
+      margin: 1.5rem 0 1rem;
+      color: var(--secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    p {
+      margin-bottom: 1.25rem;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+    
+    code {
+      background: #f1f5f9;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-family: 'Courier New', Courier, monospace;
+      font-weight: 500;
+      color: var(--knn);
+    }
+    
+    .dataset-container {
+      margin: 1.5rem 0;
+      overflow-x: auto;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    th {
+      background: linear-gradient(120deg, var(--knn), var(--primary));
+      color: white;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+    
+    tr:hover {
+      background-color: #f1f5f9;
+      transition: background-color 0.2s ease;
+    }
+    
+    .demo {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .demo:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+    
+    #prediction {
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: 600;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      min-height: 3rem;
+    }
+    
+    .prediction-fraud {
+      background: linear-gradient(120deg, #fee2e2, #fecaca);
+      color: var(--danger);
+      border-left: 4px solid var(--danger);
+    }
+    
+    .prediction-legit {
+      background: linear-gradient(120deg, #dcfce7, #bbf7d0);
+      color: var(--success);
+      border-left: 4px solid var(--success);
+    }
+    
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin: 2rem 0;
+      justify-content: center;
+    }
+    
+    .control-group {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      min-width: 250px;
+    }
+    
+    .control-group h4 {
+      margin-bottom: 1rem;
+      color: var(--dark);
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    button:hover {
+      background: var(--primary-light);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3);
+    }
+    
+    button.secondary {
+      background: var(--secondary);
+    }
+    
+    button.secondary:hover {
+      background: #8b5cf6;
+      box-shadow: 0 4px 8px rgba(124, 58, 237, 0.3);
+    }
+    
+    button.warning {
+      background: var(--warning);
+    }
+    
+    button.warning:hover {
+      background: #d97706;
+      box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+    }
+    
+    input, select, .slider-container {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 1rem;
+      margin-top: 0.5rem;
+      transition: border-color 0.3s ease;
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+    
+    .slider-container {
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .slider-container input[type="range"] {
+      width: 100%;
+      padding: 0;
+      margin: 0;
+      border: none;
+      height: 24px;
+    }
+    
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--gray);
+    }
+    
+    .navigation {
+      display: flex;
+      justify-content: space-between;
+      margin: 2rem 0;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    
+    .card-btn, .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+    
+    .card-btn {
+      background: white;
+      color: var(--dark);
+      border: 2px solid #e5e7eb;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .card-btn:hover {
+      background: #f8fafc;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .cta-btn {
+      background: linear-gradient(120deg, var(--knn), var(--primary));
+      color: white;
+      box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+    }
+    
+    .cta-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(236, 72, 153, 0.4);
+    }
+    
+    footer {
+      text-align: center;
+      padding: 2rem;
+      background: var(--dark);
+      color: white;
+      margin-top: 3rem;
+    }
+    
+    .math-explanation {
+      background: #fffbeb;
+      border: 2px solid #fde68a;
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 2rem 0;
+      position: relative;
+    }
+    
+    .math-explanation::before {
+      content: "KNN Concepts";
+      position: absolute;
+      top: -12px;
+      left: 20px;
+      background: var(--knn);
+      color: white;
+      padding: 0.25rem 1rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    
+    .formula {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+      text-align: center;
+      font-family: 'Courier New', monospace;
+      font-size: 1.2rem;
+      border-left: 4px solid var(--knn);
+    }
+    
+    .step {
+      margin: 1.5rem 0;
+      padding-left: 1.5rem;
+      border-left: 3px solid var(--accent);
+      position: relative;
+    }
+    
+    .step::before {
+      content: "Step";
+      position: absolute;
+      left: -15px;
+      top: 0;
+      background: var(--accent);
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+    
+    .tabs {
+      display: flex;
+      margin: 2rem 0;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .tab {
+      padding: 1rem 2rem;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--gray);
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s ease;
+    }
+    
+    .tab.active {
+      color: var(--knn);
+      border-bottom: 3px solid var(--knn);
+    }
+    
+    .tab-content {
+      display: none;
+      padding: 2rem 0;
+    }
+    
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      border-bottom: 1px dotted var(--knn);
+      cursor: help;
+    }
+    
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 250px;
+      background-color: var(--dark);
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 10px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+    
+    .tooltip .tooltiptext::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: var(--dark) transparent transparent transparent;
+    }
+    
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    .evaluation-metrics {
+      background: #f3f4f6;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 2rem 0;
+    }
+    
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .metric-card {
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .metric-card h5 {
+      color: var(--secondary);
+      margin-bottom: 0.5rem;
+    }
+    
+    .metric-card .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--knn);
+    }
+    
+    .python-code {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 1.5rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin: 1.5rem 0;
+    }
+    
+    .comparison-table {
+      margin: 2rem 0;
+    }
+    
+    .comparison-table table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .comparison-table th, 
+    .comparison-table td {
+      padding: 1rem;
+      text-align: center;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .comparison-table th {
+      background: linear-gradient(120deg, var(--knn), var(--primary));
+      color: white;
+    }
+    
+    .comparison-table tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+    
+    .comparison-table tr:hover {
+      background-color: #f1f5f9;
+    }
+    
+    .comparison-table .highlight {
+      background-color: #dbeafe;
+      font-weight: bold;
+    }
+    
+    .fraud-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    
+    .fraud-yes {
+      background-color: var(--danger);
+    }
+    
+    .fraud-no {
+      background-color: var(--success);
+    }
+    
+    @media (max-width: 768px) {
+      header h1 {
+        font-size: 2rem;
+      }
+      
+      .lesson, .demo {
+        padding: 1.5rem;
+      }
+      
+      .navigation {
+        flex-direction: column;
+      }
+      
+      .card-btn, .cta-btn {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .controls {
+        flex-direction: column;
+      }
+    }
+    
+    #randomize-data {
+      margin-bottom: 10px;
+    }
+    
+    #add-point {
+      margin-top: 10px;
+    }
+    
+    .secondary {
+      margin-top: 10px;
+    }
+    
+    #retrain-model {
+      margin-top: 10px;
+    }
+    
+    .k-value-container {
+      margin-top: 1rem;
+    }
+    
+    .k-value-display {
+      font-weight: bold;
+      color: var(--knn);
+      font-size: 1.2rem;
+      text-align: center;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><i class="fas fa-chart-line"></i> K Nearest Neighbors</h1>
+    <p>Discover the simple yet powerful algorithm for classification and regression</p>
+  </header>
+
+  <main>
+    <div class="tabs">
+      <div class="tab active" data-tab="concept">Concept</div>
+      <div class="tab" data-tab="math">Mathematics</div>
+      <div class="tab" data-tab="implementation">Implementation</div>
+      <div class="tab" data-tab="comparison">vs. Neural Networks</div>
+    </div>
+
+    <div class="tab-content active" id="concept">
+      <section class="lesson">
+        <h2><i class="fas fa-lightbulb"></i> What is K Nearest Neighbors?</h2>
+        <p>
+          K Nearest Neighbors (KNN) is a simple, non-parametric, and instance-based machine learning algorithm used for both classification and regression tasks.
+          It works by finding the K most similar instances (neighbors) to a new data point and making predictions based on these neighbors.
+        </p>
+        
+        <p>
+          Unlike neural networks that learn complex patterns through training, KNN is a "lazy learner" that doesn't build a model during training.
+          Instead, it memorizes the entire training dataset and makes predictions by comparing new instances to all stored examples.
+        </p>
+
+        <div class="math-explanation">
+          <h3>How KNN Works</h3>
+          <div class="step">
+            <h3>Step 1: Choose K</h3>
+            <p>Select the number of neighbors (K) to consider. This is a hyperparameter that affects the model's performance.</p>
+          </div>
+          
+          <div class="step">
+            <h3>Step 2: Calculate Distances</h3>
+            <p>For a new data point, compute the distance to all points in the training set (typically using Euclidean distance).</p>
+          </div>
+          
+          <div class="step">
+            <h3>Step 3: Find K Nearest</h3>
+            <p>Identify the K training points with the smallest distances to the new point.</p>
+          </div>
+          
+          <div class="step">
+            <h3>Step 4: Make Prediction</h3>
+            <p>For classification: take a majority vote among the K neighbors. For regression: take the average of their values.</p>
+          </div>
+        </div>
+
+        <h3><i class="fas fa-credit-card"></i> Sample Dataset: Credit Card Fraud Detection</h3>
+        <p>We'll use a credit card transaction dataset to detect fraudulent transactions. This dataset is highly imbalanced (99.8% legitimate, 0.2% fraud), making it a good test for KNN:</p>
+        
+        <div class="dataset-container">
+          <table id="dataset-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Amount</th>
+                <th>V1</th>
+                <th>V2</th>
+                <th>V3</th>
+                <th>V4</th>
+                <th>Fraud</th>
+              </tr>
+            </thead>
+            <tbody id="dataset-body">
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="controls">
+          <div class="control-group">
+            <h4>Add New Transaction</h4>
+            <input type="number" id="new-amount" placeholder="Transaction Amount" step="0.01" min="0" max="10000" value="50.00">
+            <input type="number" id="new-v1" placeholder="V1 (PCA)" step="0.01" min="-50" max="50" value="-1.5">
+            <input type="number" id="new-v2" placeholder="V2 (PCA)" step="0.01" min="-50" max="50" value="2.3">
+            <input type="number" id="new-v3" placeholder="V3 (PCA)" step="0.01" min="-50" max="50" value="0.8">
+            <input type="number" id="new-v4" placeholder="V4 (PCA)" step="0.01" min="-50" max="50" value="-3.1">
+            <select id="new-fraud">
+              <option value="0">Legitimate</option>
+              <option value="1">Fraudulent</option>
+            </select>
+            <button id="add-point"><i class="fas fa-plus"></i> Add Transaction</button>
+          </div>
+          
+          <div class="control-group">
+            <h4>Dataset Operations</h4>
+            <button id="randomize-data"><i class="fas fa-random"></i> Randomize Data</button>
+            <button id="reset-data" class="warning"><i class="fas fa-undo"></i> Reset Data</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="demo">
+        <h3><i class="fas fa-flask"></i> Interactive KNN Demo</h3>
+        <p>Enter credit card transaction details to predict if it's fraudulent using KNN:</p>
+        
+        <div class="controls">
+          <div class="control-group">
+            <label>Transaction Amount: 
+              <input type="number" id="inputAmount" min="0" max="10000" step="0.01" value="100.00">
+            </label>
+            <label>V1 (PCA): 
+              <input type="number" id="inputV1" min="-50" max="50" step="0.01" value="-2.5">
+            </label>
+            <label>V2 (PCA): 
+              <input type="number" id="inputV2" min="-50" max="50" step="0.01" value="3.2">
+            </label>
+            <label>V3 (PCA): 
+              <input type="number" id="inputV3" min="-50" max="50" step="0.01" value="1.7">
+            </label>
+            <label>V4 (PCA): 
+              <input type="number" id="inputV4" min="-50" max="50" step="0.01" value="-4.2">
+            </label>
+            
+            <div class="k-value-container">
+              <label>K Value: 
+                <input type="range" id="kValue" min="1" max="15" value="5">
+              </label>
+              <div class="k-value-display">K = <span id="kValueDisplay">5</span></div>
+            </div>
+            
+            <button id="predict-btn"><i class="fas fa-calculator"></i> Predict Fraud</button>
+          </div>
+          
+          <div class="control-group">
+            <h4>Model Operations</h4>
+            <button id="retrain-model"><i class="fas fa-sync"></i> Retrain Model</button>
+            <button id="show-neighbors" class="secondary"><i class="fas fa-users"></i> Show Nearest Neighbors</button>
+          </div>
+        </div>
+         <div id="prediction">Enter transaction details and click "Predict Fraud"</div>
+        
+        <div id="neighbors-display" style="display: none; margin-top: 1rem;">
+          <h4>Nearest Neighbors:</h4>
+          <div id="neighbors-list"></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab-content" id="math">
+      <section class="lesson">
+        <h2><i class="fas fa-calculator"></i> KNN Mathematics</h2>
+        
+        <div class="math-explanation">
+          <h3>Distance Metrics</h3>
+          <p>The most common distance metric used in KNN is the Euclidean distance:</p>
+          <div class="formula">
+            d(x, y) = √[Σ(xᵢ - yᵢ)²]
+          </div>
+          <p>Where x and y are two data points with n features.</p>
+          
+          <h3>Other Distance Metrics</h3>
+          <p>Depending on the problem, other distance metrics can be used:</p>
+          <ul style="margin: 1rem 0; padding-left: 1.5rem;">
+            <li><strong>Manhattan Distance:</strong> d(x, y) = Σ|xᵢ - yᵢ|</li>
+            <li><strong>Minkowski Distance:</strong> d(x, y) = (Σ|xᵢ - yᵢ|ᵖ)^(1/p)</li>
+            <li><strong>Cosine Similarity:</strong> cos(θ) = (x·y) / (||x|| ||y||)</li>
+          </ul>
+        </div>
+        
+        <h3>Choosing the Right K Value</h3>
+        <p>The choice of K is crucial for KNN performance:</p>
+        <ul style="margin: 1rem 0; padding-left: 1.5rem;">
+          <li><strong>Small K (e.g., K=1):</strong> Low bias but high variance (overfitting)</li>
+          <li><strong>Large K:</strong> High bias but low variance (underfitting)</li>
+          <li><strong>Optimal K:</strong> Usually found through cross-validation</li>
+        </ul>
+        
+        <div class="math-explanation">
+          <h3>Weighted KNN</h3>
+          <p>In weighted KNN, closer neighbors have more influence on the prediction:</p>
+          <div class="formula">
+            Weight = 1 / d(x, xᵢ)
+          </div>
+          <p>Where d(x, xᵢ) is the distance between the query point and neighbor i.</p>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab-content" id="implementation">
+      <section class="lesson">
+        <h2><i class="fas fa-code"></i> KNN Implementation in Python</h2>
+        
+        <div class="python-code">
+          <pre><code># K Nearest Neighbors Implementation for Credit Card Fraud Detection
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load the dataset (assuming you have a CSV file)
+# For this example, we'll create a sample dataset similar to the one in the lesson
+np.random.seed(42)
+
+# Create sample data
+n_samples = 1000
+legitimate_samples = int(n_samples * 0.98)  # 98% legitimate
+fraud_samples = n_samples - legitimate_samples  # 2% fraud
+
+# Generate legitimate transactions
+legit_amount = np.random.uniform(10, 1000, legitimate_samples)
+legit_v1 = np.random.normal(-1, 2, legitimate_samples)
+legit_v2 = np.random.normal(2, 1.5, legitimate_samples)
+legit_v3 = np.random.normal(0.5, 1, legitimate_samples)
+legit_v4 = np.random.normal(-2, 1.8, legitimate_samples)
+legit_fraud = np.zeros(legitimate_samples)
+
+# Generate fraudulent transactions
+fraud_amount = np.random.uniform(500, 5000, fraud_samples)
+fraud_v1 = np.random.normal(3, 1.5, fraud_samples)
+fraud_v2 = np.random.normal(-3.5, 2, fraud_samples)
+fraud_v3 = np.random.normal(2, 1.2, fraud_samples)
+fraud_v4 = np.random.normal(-2.5, 1.5, fraud_samples)
+fraud_fraud = np.ones(fraud_samples)
+
+# Combine datasets
+amount = np.concatenate([legit_amount, fraud_amount])
+v1 = np.concatenate([legit_v1, fraud_v1])
+v2 = np.concatenate([legit_v2, fraud_v2])
+v3 = np.concatenate([legit_v3, fraud_v3])
+v4 = np.concatenate([legit_v4, fraud_v4])
+fraud = np.concatenate([legit_fraud, fraud_fraud])
+
+# Create DataFrame
+df = pd.DataFrame({
+    'Amount': amount,
+    'V1': v1,
+    'V2': v2,
+    'V3': v3,
+    'V4': v4,
+    'Fraud': fraud
+})
+
+print("Dataset shape:", df.shape)
+print("Fraud distribution:")
+print(df['Fraud'].value_counts())
+
+# Prepare features and target
+X = df[['Amount', 'V1', 'V2', 'V3', 'V4']]
+y = df['Fraud']
+
+# Split the dataset
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+# Feature scaling (important for KNN)
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Find optimal K using cross-validation
+from sklearn.model_selection import cross_val_score
+
+k_values = range(1, 21)
+cv_scores = []
+
+for k in k_values:
+    knn = KNeighborsClassifier(n_neighbors=k)
+    scores = cross_val_score(knn, X_train_scaled, y_train, cv=5, scoring='accuracy')
+    cv_scores.append(scores.mean())
+
+# Find best K
+optimal_k = k_values[np.argmax(cv_scores)]
+print(f"Optimal K: {optimal_k}")
+
+# Train the model with optimal K
+knn_model = KNeighborsClassifier(n_neighbors=optimal_k)
+knn_model.fit(X_train_scaled, y_train)
+
+# Make predictions
+y_pred = knn_model.predict(X_test_scaled)
+
+# Evaluate the model
+print("\nModel Performance:")
+print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
+
+# Confusion Matrix
+plt.figure(figsize=(8, 6))
+cm = confusion_matrix(y_test, y_pred)
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+plt.title('Confusion Matrix - KNN Fraud Detection')
+plt.ylabel('Actual')
+plt.xlabel('Predicted')
+plt.show()
+
+# Function to predict new transactions
+def predict_fraud(amount, v1, v2, v3, v4, model, scaler):
+    """
+    Predict if a transaction is fraudulent
+    """
+    # Create feature array
+    features = np.array([[amount, v1, v2, v3, v4]])
+    
+    # Scale features
+    features_scaled = scaler.transform(features)
+    
+    # Make prediction
+    prediction = model.predict(features_scaled)[0]
+    probability = model.predict_proba(features_scaled)[0]
+    
+    return prediction, probability
+
+# Example prediction
+example_amount = 1500.0
+example_v1 = 2.8
+example_v2 = -3.2
+example_v3 = 1.9
+example_v4 = -2.1
+
+pred, prob = predict_fraud(
+    example_amount, example_v1, example_v2, example_v3, example_v4,
+    knn_model, scaler
+)
+
+print(f"\nExample Prediction:")
+print(f"Transaction: Amount=${example_amount}, V1={example_v1}, V2={example_v2}, V3={example_v3}, V4={example_v4}")
+print(f"Prediction: {'Fraudulent' if pred == 1 else 'Legitimate'}")
+print(f"Probability: Legitimate={prob[0]:.3f}, Fraudulent={prob[1]:.3f}")
+
+# Find nearest neighbors for a specific transaction
+def find_nearest_neighbors(amount, v1, v2, v3, v4, model, scaler, k=5):
+    """
+    Find the k nearest neighbors for a given transaction
+    """
+    features = np.array([[amount, v1, v2, v3, v4]])
+    features_scaled = scaler.transform(features)
+    
+    # Get distances and indices of neighbors
+    distances, indices = model.kneighbors(features_scaled, n_neighbors=k)
+    
+    return distances[0], indices[0]
+
+# Example: Find nearest neighbors
+distances, indices = find_nearest_neighbors(
+    example_amount, example_v1, example_v2, example_v3, example_v4,
+    knn_model, scaler, k=5
+)
+
+print(f"\nNearest Neighbors (K=5):")
+for i, (dist, idx) in enumerate(zip(distances, indices)):
+    neighbor_fraud = y_train.iloc[idx]
+    print(f"Neighbor {i+1}: Distance={dist:.4f}, Fraud={neighbor_fraud}")</code></pre>
+        </div>
+        
+        <h3>Key Implementation Details</h3>
+        <ul style="margin: 1rem 0; padding-left: 1.5rem;">
+          <li><strong>Feature Scaling:</strong> Essential for KNN since it's distance-based. We use StandardScaler to normalize features.</li>
+          <li><strong>Stratified Splitting:</strong> Maintains the same proportion of fraud/legitimate transactions in train and test sets.</li>
+          <li><strong>Cross-Validation:</strong> Used to find the optimal K value that maximizes accuracy.</li>
+          <li><strong>Imbalanced Dataset Handling:</strong> The dataset is highly imbalanced, so consider using metrics like precision, recall, and F1-score instead of just accuracy.</li>
+          <li><strong>Prediction Function:</strong> Includes a helper function to easily predict new transactions and find nearest neighbors.</li>
+        </ul>
+        
+        <div class="math-explanation">
+          <h3>Working with Real Credit Card Fraud Dataset</h3>
+          <p>To use this code with the actual Kaggle Credit Card Fraud Detection dataset:</p>
+          <ol style="margin: 1rem 0; padding-left: 1.5rem;">
+            <li>Download the dataset from <a href="https://www.kaggle.com/mlg-ulb/creditcardfraud" target="_blank">Kaggle</a></li>
+            <li>Replace the sample data creation with: <code>df = pd.read_csv('creditcard.csv')</code></li>
+            <li>Use all features (V1-V28) instead of just V1-V4 for better performance</li>
+            <li>Consider using SMOTE or other techniques to handle the extreme class imbalance</li>
+          </ol>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab-content" id="comparison">
+      <section class="lesson">
+        <h2><i class="fas fa-balance-scale"></i> KNN vs Neural Networks</h2>
+        
+        <div class="comparison-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>K Nearest Neighbors</th>
+                <th>Neural Networks</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Learning Type</td>
+                <td class="highlight">Lazy Learning</td>
+                <td>Eager Learning</td>
+              </tr>
+              <tr>
+                <td>Training Time</td>
+                <td class="highlight">O(1) - No training</td>
+                <td>O(iterations × samples)</td>
+              </tr>
+              <tr>
+                <td>Prediction Time</td>
+                <td>O(n) - Slow for large datasets</td>
+                <td class="highlight">O(1) - Fast after training</td>
+              </tr>
+              <tr>
+                <td>Memory Usage</td>
+                <td>O(n) - Stores all data</td>
+                <td class="highlight">O(weights) - Compact model</td>
+              </tr>
+              <tr>
+                <td>Feature Scaling</td>
+                <td class="highlight">Required</td>
+                <td>Recommended</td>
+              </tr>
+              <tr>
+                <td>Interpretability</td>
+                <td class="highlight">High - Shows similar examples</td>
+                <td>Low - Black box model</td>
+              </tr>
+              <tr>
+                <td>Best For</td>
+                <td>Small datasets, simple problems</td>
+                <td class="highlight">Large datasets, complex patterns</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <h3>When to Use KNN</h3>
+        <ul style="margin: 1rem 0; padding-left: 1.5rem;">
+          <li>When you have a small to medium-sized dataset</li>
+          <li>When interpretability is important</li>
+          <li>When the decision boundary is irregular</li>
+          <li>When you need a simple baseline model</li>
+          <li>When computational resources are limited for training</li>
+        </ul>
+      </section>
+    </div>
+  </main>
+   <section class="navigation">
+      <a href="SVM.html" class="card-btn" target="_blank"><i class="fas fa-backward"></i> Previous: SVM</a>
+      <a href="Neural Network.html" class="cta-btn" target="_blank"><i class="fas fa-forward"></i> Next: Neural Network</a>
+    </section>
+  <footer>
+    <p>Simplified Machine Learning  Concepts Through Interactive Examples</p>
+    <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">&copy; 2025 Machine Learning | AlgoNation • Learn by doing</p>
+  </footer>
+  <script>
+    // Sample dataset for credit card fraud detection
+    let dataset = [
+      { id: 1, amount: 100.00, v1: -1.5, v2: 2.3, v3: 0.8, v4: -3.1, fraud: 0 },
+      { id: 2, amount: 500.00, v1: -2.1, v2: 1.8, v3: -1.2, v4: 2.5, fraud: 0 },
+      { id: 3, amount: 50.00, v1: 3.2, v2: -4.1, v3: 2.7, v4: -1.8, fraud: 1 },
+      { id: 4, amount: 200.00, v1: -0.8, v2: 1.5, v3: 0.3, v4: -2.2, fraud: 0 },
+      { id: 5, amount: 1000.00, v1: 4.5, v2: -3.8, v3: 1.9, v4: -2.7, fraud: 1 },
+      { id: 6, amount: 75.00, v1: -1.2, v2: 2.1, v3: 0.5, v4: -1.9, fraud: 0 },
+      { id: 7, amount: 300.00, v1: 2.8, v2: -3.5, v3: 1.6, v4: -2.3, fraud: 1 },
+      { id: 8, amount: 150.00, v1: -1.8, v2: 1.9, v3: -0.7, v4: 1.8, fraud: 0 },
+      { id: 9, amount: 400.00, v1: 3.7, v2: -4.2, v3: 2.1, v4: -3.0, fraud: 1 },
+      { id: 10, amount: 60.00, v1: -0.9, v2: 1.7, v3: 0.4, v4: -2.0, fraud: 0 }
+    ];
+    
+    let originalDataset = JSON.parse(JSON.stringify(dataset));
+    
+    // KNN Implementation
+    class KNN {
+      constructor(k = 5) {
+        this.k = k;
+        this.data = [];
+      }
+      
+      fit(X, y) {
+        this.data = X.map((features, i) => ({
+          features,
+          label: y[i]
+        }));
+      }
+      
+      euclideanDistance(a, b) {
+        return Math.sqrt(a.reduce((sum, val, i) => 
+          sum + Math.pow(val - b[i], 2), 0));
+      }
+      
+      predict(x) {
+        const distances = this.data.map(point => ({
+          distance: this.euclideanDistance(x, point.features),
+          label: point.label
+        }));
+        
+        distances.sort((a, b) => a.distance - b.distance);
+        const kNearest = distances.slice(0, this.k);
+        
+        const votes = {};
+        kNearest.forEach(neighbor => {
+          votes[neighbor.label] = (votes[neighbor.label] || 0) + 1;
+        });
+        
+        return Object.keys(votes).reduce((a, b) => 
+          votes[a] > votes[b] ? a : b);
+      }
+      
+      getNeighbors(x) {
+        const distances = this.data.map(point => ({
+          distance: this.euclideanDistance(x, point.features),
+          label: point.label,
+          features: point.features
+        }));
+        
+        distances.sort((a, b) => a.distance - b.distance);
+        return distances.slice(0, this.k);
+      }
+    }
+    
+    // Initialize KNN model
+    let knn = new KNN(5);
+    let X = dataset.map(row => [row.amount, row.v1, row.v2, row.v3, row.v4]);
+    let y = dataset.map(row => row.fraud);
+    knn.fit(X, y);
+    
+    // DOM Elements
+    const datasetBody = document.getElementById('dataset-body');
+    const newAmount = document.getElementById('new-amount');
+    const newV1 = document.getElementById('new-v1');
+    const newV2 = document.getElementById('new-v2');
+    const newV3 = document.getElementById('new-v3');
+    const newV4 = document.getElementById('new-v4');
+    const newFraud = document.getElementById('new-fraud');
+    const addPointBtn = document.getElementById('add-point');
+    const randomizeDataBtn = document.getElementById('randomize-data');
+    const resetDataBtn = document.getElementById('reset-data');
+    const inputAmount = document.getElementById('inputAmount');
+    const inputV1 = document.getElementById('inputV1');
+    const inputV2 = document.getElementById('inputV2');
+    const inputV3 = document.getElementById('inputV3');
+    const inputV4 = document.getElementById('inputV4');
+    const kValue = document.getElementById('kValue');
+    const kValueDisplay = document.getElementById('kValueDisplay');
+    const predictBtn = document.getElementById('predict-btn');
+    const retrainBtn = document.getElementById('retrain-model');
+    const showNeighborsBtn = document.getElementById('show-neighbors');
+    const predictionDiv = document.getElementById('prediction');
+    const neighborsDisplay = document.getElementById('neighbors-display');
+    const neighborsList = document.getElementById('neighbors-list');
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    // Initialize dataset table
+    function renderDataset() {
+      datasetBody.innerHTML = '';
+      dataset.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${row.id}</td>
+          <td>$${row.amount.toFixed(2)}</td>
+          <td>${row.v1.toFixed(2)}</td>
+          <td>${row.v2.toFixed(2)}</td>
+          <td>${row.v3.toFixed(2)}</td>
+          <td>${row.v4.toFixed(2)}</td>
+          <td>
+            <span class="fraud-indicator ${row.fraud ? 'fraud-yes' : 'fraud-no'}"></span>
+            ${row.fraud ? 'Yes' : 'No'}
+          </td>
+        `;
+        datasetBody.appendChild(tr);
+      });
+    }
+    
+    // Add new data point
+    addPointBtn.addEventListener('click', () => {
+      const newId = dataset.length > 0 ? Math.max(...dataset.map(d => d.id)) + 1 : 1;
+      const newRow = {
+        id: newId,
+        amount: parseFloat(newAmount.value),
+        v1: parseFloat(newV1.value),
+        v2: parseFloat(newV2.value),
+        v3: parseFloat(newV3.value),
+        v4: parseFloat(newV4.value),
+        fraud: parseInt(newFraud.value)
+      };
+      
+      dataset.push(newRow);
+      renderDataset();
+      updateModel();
+    });
+    
+    // Randomize dataset
+    randomizeDataBtn.addEventListener('click', () => {
+      dataset = dataset.map(row => ({
+        ...row,
+        amount: Math.random() * 10000,
+        v1: (Math.random() - 0.5) * 100,
+        v2: (Math.random() - 0.5) * 100,
+        v3: (Math.random() - 0.5) * 100,
+        v4: (Math.random() - 0.5) * 100,
+        fraud: Math.random() > 0.98 ? 1 : 0
+      }));
+      renderDataset();
+      updateModel();
+    });
+    
+    // Reset dataset
+    resetDataBtn.addEventListener('click', () => {
+      dataset = JSON.parse(JSON.stringify(originalDataset));
+      renderDataset();
+      updateModel();
+    });
+    
+    // Update K value display
+    kValue.addEventListener('input', () => {
+      kValueDisplay.textContent = kValue.value;
+      knn.k = parseInt(kValue.value);
+    });
+    
+    // Predict fraud
+    predictBtn.addEventListener('click', () => {
+      const input = [
+        parseFloat(inputAmount.value),
+        parseFloat(inputV1.value),
+        parseFloat(inputV2.value),
+        parseFloat(inputV3.value),
+        parseFloat(inputV4.value)
+      ];
+      
+      const prediction = knn.predict(input);
+      const isFraud = prediction === '1';
+      
+      predictionDiv.className = isFraud ? 'prediction-fraud' : 'prediction-legit';
+      predictionDiv.innerHTML = isFraud ? 
+        '<i class="fas fa-exclamation-triangle"></i> Fraudulent Transaction Detected!' : 
+        '<i class="fas fa-check-circle"></i> Transaction Appears Legitimate';
+    });
+    
+    // Retrain model
+    retrainBtn.addEventListener('click', () => {
+      updateModel();
+      predictionDiv.textContent = 'Model retrained successfully!';
+      predictionDiv.className = '';
+    });
+    
+    // Show nearest neighbors
+    showNeighborsBtn.addEventListener('click', () => {
+      const input = [
+        parseFloat(inputAmount.value),
+        parseFloat(inputV1.value),
+        parseFloat(inputV2.value),
+        parseFloat(inputV3.value),
+        parseFloat(inputV4.value)
+      ];
+      
+      const neighbors = knn.getNeighbors(input);
+      neighborsList.innerHTML = '';
+      
+      neighbors.forEach((neighbor, index) => {
+        const neighborDiv = document.createElement('div');
+        neighborDiv.className = 'neighbor-item';
+        neighborDiv.style.padding = '0.5rem';
+        neighborDiv.style.margin = '0.25rem 0';
+        neighborDiv.style.backgroundColor = index % 2 === 0 ? '#f8fafc' : '#f1f5f9';
+        neighborDiv.style.borderRadius = '4px';
+        neighborDiv.innerHTML = `
+          <strong>Neighbor ${index + 1}:</strong> 
+          Distance: ${neighbor.distance.toFixed(4)}, 
+          Fraud: ${neighbor.label === '1' ? 'Yes' : 'No'}
+        `;
+        neighborsList.appendChild(neighborDiv);
+      });
+      
+      neighborsDisplay.style.display = 'block';
+    });
+    
+    // Update model with current dataset
+    function updateModel() {
+      X = dataset.map(row => [row.amount, row.v1, row.v2, row.v3, row.v4]);
+      y = dataset.map(row => row.fraud.toString());
+      knn.fit(X, y);
+    }
+    
+    // Tab switching
+      tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tabContents.forEach(c => c.classList.remove('active'));
+        
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab).classList.add('active');
+      });
+    });
+    
+    // Initialize
+    renderDataset();
+  </script>
+</body>
+</html>
+      

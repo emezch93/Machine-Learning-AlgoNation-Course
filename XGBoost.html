@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>XGBoost | ML AlgoNation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary: #0ea5e9;
+      --primary-light: #38bdf8;
+      --secondary: #7c3aed;
+      --accent: #f59e0b;
+      --dark: #1f2937;
+      --light: #f9fafb;
+      --gray: #6b7280;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --info: #3b82f6;
+      --boost: #0284c7;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: var(--dark);
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      min-height: 100vh;
+    }
+    
+    header {
+      background: linear-gradient(120deg, var(--boost), var(--primary));
+      color: white;
+      padding: 2rem 0;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    header::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.1)"/></svg>');
+      background-size: cover;
+    }
+    
+    header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      position: relative;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    main {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    
+    .lesson {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .lesson:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+    
+    h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      color: var(--boost);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 3px solid var(--primary-light);
+    }
+    
+    h3 {
+      font-size: 1.4rem;
+      margin: 1.5rem 0 1rem;
+      color: var(--secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    p {
+      margin-bottom: 1.25rem;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+    
+    code {
+      background: #f1f5f9;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-family: 'Courier New', Courier, monospace;
+      font-weight: 500;
+      color: var(--boost);
+    }
+    
+    .dataset-container {
+      margin: 1.5rem 0;
+      overflow-x: auto;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    th {
+      background: linear-gradient(120deg, var(--boost), var(--primary));
+      color: white;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+    
+    tr:hover {
+      background-color: #f1f5f9;
+      transition: background-color 0.2s ease;
+    }
+    
+    .demo {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .demo:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+    
+    #prediction {
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: 600;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      min-height: 3rem;
+    }
+    
+    .prediction-low {
+      background: linear-gradient(120deg, #fee2e2, #fecaca);
+      color: var(--danger);
+      border-left: 4px solid var(--danger);
+    }
+    
+    .prediction-medium {
+      background: linear-gradient(120deg, #fef3c7, #fde68a);
+      color: var(--warning);
+      border-left: 4px solid var(--warning);
+    }
+    
+    .prediction-high {
+      background: linear-gradient(120deg, #dcfce7, #bbf7d0);
+      color: var(--success);
+      border-left: 4px solid var(--success);
+    }
+    
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin: 2rem 0;
+      justify-content: center;
+    }
+    
+    .control-group {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      min-width: 250px;
+    }
+    
+    .control-group h4 {
+      margin-bottom: 1rem;
+      color: var(--dark);
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    button:hover {
+      background: var(--primary-light);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(14, 165, 233, 0.3);
+    }
+    
+    button.secondary {
+      background: var(--secondary);
+    }
+    
+    button.secondary:hover {
+      background: #8b5cf6;
+      box-shadow: 0 4px 8px rgba(124, 58, 237, 0.3);
+    }
+    
+    button.warning {
+      background: var(--warning);
+    }
+    
+    button.warning:hover {
+      background: #d97706;
+      box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+    }
+    
+    input, select, .slider-container {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 1rem;
+      margin-top: 0.5rem;
+      transition: border-color 0.3s ease;
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+    }
+    
+    .slider-container {
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .slider-container input[type="range"] {
+      width: 100%;
+      padding: 0;
+      margin: 0;
+      border: none;
+      height: 24px;
+    }
+    
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--gray);
+    }
+    
+    .navigation {
+      display: flex;
+      justify-content: space-between;
+      margin: 2rem 0;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    
+    .card-btn, .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+    
+    .card-btn {
+      background: white;
+      color: var(--dark);
+      border: 2px solid #e5e7eb;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .card-btn:hover {
+      background: #f8fafc;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .cta-btn {
+      background: linear-gradient(120deg, var(--boost), var(--primary));
+      color: white;
+      box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+    }
+    
+    .cta-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(14, 165, 233, 0.4);
+    }
+    
+    footer {
+      text-align: center;
+      padding: 2rem;
+      background: var(--dark);
+      color: white;
+      margin-top: 3rem;
+    }
+    
+    .math-explanation {
+      background: #f0f9ff;
+      border: 2px solid #bae6fd;
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 2rem 0;
+      position: relative;
+    }
+    
+    .math-explanation::before {
+      content: "XGBoost Concepts";
+      position: absolute;
+      top: -12px;
+      left: 20px;
+      background: var(--primary);
+      color: white;
+      padding: 0.25rem 1rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    
+    .formula {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+      text-align: center;
+      font-family: 'Courier New', monospace;
+      font-size: 1.2rem;
+      border-left: 4px solid var(--primary);
+    }
+    
+    .step {
+      margin: 1.5rem 0;
+      padding-left: 1.5rem;
+      border-left: 3px solid var(--accent);
+      position: relative;
+    }
+    
+    .step::before {
+      content: "Step";
+      position: absolute;
+      left: -15px;
+      top: 0;
+      background: var(--accent);
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+    
+    .tabs {
+      display: flex;
+      margin: 2rem 0;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .tab {
+      padding: 1rem 2rem;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--gray);
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s ease;
+    }
+    
+    .tab.active {
+      color: var(--primary);
+      border-bottom: 3px solid var(--primary);
+    }
+    
+    .tab-content {
+      display: none;
+      padding: 2rem 0;
+    }
+    
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      border-bottom: 1px dotted var(--primary);
+      cursor: help;
+    }
+    
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 250px;
+      background-color: var(--dark);
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 10px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+    
+    .tooltip .tooltiptext::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: var(--dark) transparent transparent transparent;
+    }
+    
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    .boosting-visualization {
+      background: #f3f4f6;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 2rem 0;
+      overflow: auto;
+      text-align: center;
+    }
+    
+    .boosting-steps {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 2rem;
+      margin-top: 1.5rem;
+    }
+    
+    .boost-step {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      width: 200px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    
+    .boost-step h4 {
+      margin-bottom: 1rem;
+      color: var(--secondary);
+    }
+    
+    .boost-step .icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: var(--primary);
+    }
+    
+    .evaluation-metrics {
+      background: #f3f4f6;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 2rem 0;
+    }
+    
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .metric-card {
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .metric-card h5 {
+      color: var(--secondary);
+      margin-bottom: 0.5rem;
+    }
+    
+    .metric-card .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .python-code {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 1.5rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin: 1.5rem 0;
+    }
+    
+    .comparison-table {
+      margin: 2rem 0;
+    }
+    
+    .comparison-table table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .comparison-table th, 
+    .comparison-table td {
+      padding: 1rem;
+      text-align: center;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .comparison-table th {
+      background: linear-gradient(120deg, var(--boost), var(--primary));
+      color: white;
+    }
+    
+    .comparison-table tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+    
+    .comparison-table tr:hover {
+      background-color: #f1f5f9;
+    }
+    
+    .comparison-table .highlight {
+      background-color: #dbeafe;
+      font-weight: bold;
+    }
+    
+    .residual-visualization {
+      height: 200px;
+      margin: 1.5rem 0;
+      position: relative;
+    }
+    
+    @media (max-width: 768px) {
+      header h1 {
+        font-size: 2rem;
+      }
+      
+      .lesson, .demo {
+        padding: 1.5rem;
+      }
+      
+      .navigation {
+        flex-direction: column;
+      }
+      
+      .card-btn, .cta-btn {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .controls {
+        flex-direction: column;
+      }
+      
+      .boosting-steps {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+    
+    #randomize-data {
+      margin-bottom: 10px;
+    }
+    
+    #add-point {
+      margin-top: 10px;
+    }
+    
+    .secondary {
+      margin-top: 10px;
+    }
+    
+    #retrain-model {
+      margin-top: 10px;
+    }
+    
+    .quality-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    
+    .quality-low {
+      background-color: var(--danger);
+    }
+    
+    .quality-medium {
+      background-color: var(--warning);
+    }
+    
+    .quality-high {
+      background-color: var(--success);
+    }
+    
+    .boost-arrow {
+      font-size: 2rem;
+      color: var(--primary);
+      margin: 0 1rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><i class="fas fa-chart-line"></i> XGBoost</h1>
+    <p>Master the algorithm behind winning Kaggle solutions with gradient boosting</p>
+  </header>
+
+  <main>
+    <div class="tabs">
+      <div class="tab active" data-tab="concept">Concept</div>
+      <div class="tab" data-tab="math">Mathematics</div>
+      <div class="tab" data-tab="implementation">Implementation</div>
+      <div class="tab" data-tab="comparison">vs. Random Forest</div>
+    </div>
+
+    <div class="tab-content active" id="concept">
+      <section class="lesson">
+        <h2><i class="fas fa-lightbulb"></i> What is XGBoost?</h2>
+        <p>
+          XGBoost (Extreme Gradient Boosting) is an optimized implementation of gradient boosting that's designed for speed and performance.
+          It's the algorithm behind most winning solutions in Kaggle competitions and is widely used in industry for tabular data problems.
+        </p>
+        
+        <p>
+          Unlike Random Forest (which builds trees in parallel), XGBoost builds trees <strong>sequentially</strong>, where each new tree 
+          corrects the errors made by the previous trees. This "boosting" approach often leads to higher accuracy than bagging methods.
+        </p>
+
+        <div class="math-explanation">
+          <h3>How XGBoost Works</h3>
+          <div class="step">
+            <h3>Step 1: Initialize Predictions</h3>
+            <p>Start with a simple prediction (e.g., average of target values) for all samples.</p>
+          </div>
+          
+          <div class="step">
+            <h3>Step 2: Calculate Residuals</h3>
+            <p>Compute the difference between actual values and current predictions (these are the "errors" to correct).</p>
+          </div>
+          
+          <div class="step">
+            <h3>Step 3: Build a New Tree</h3>
+            <p>Train a decision tree to predict these residuals. The tree is regularized to prevent overfitting.</p>
+          </div>
+          
+          <div class="step">
+            <h3>Step 4: Update Predictions</h3>
+            <p>Add the new tree's predictions (scaled by learning rate) to the current predictions.</p>
+          </div>
+          
+          <div class="step">
+            <h3>Step 5: Repeat</h3>
+            <p>Repeat steps 2-4 for the specified number of trees (n_estimators).</p>
+          </div>
+        </div>
+
+        <h3><i class="fas fa-wine-bottle"></i> Sample Dataset: Wine Quality Prediction</h3>
+        <p>We'll use the same wine quality dataset to compare XGBoost directly with Random Forest:</p>
+        
+        <div class="dataset-container">
+          <table id="dataset-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Fixed Acidity</th>
+                <th>Volatile Acidity</th>
+                <th>Citric Acid</th>
+                <th>Residual Sugar</th>
+                <th>Chlorides</th>
+                <th>Quality</th>
+              </tr>
+            </thead>
+            <tbody id="dataset-body">
+            </tbody>
+          </table>
+        </div>
+   <div class="controls">
+          <div class="control-group">
+            <h4>Add New Wine Sample</h4>
+            <input type="number" id="new-acidity" placeholder="Fixed Acidity" step="0.1" min="4" max="16" value="7.0">
+            <input type="number" id="new-volatile" placeholder="Volatile Acidity" step="0.01" min="0.1" max="1.6" value="0.27">
+            <input type="number" id="new-citric" placeholder="Citric Acid" step="0.01" min="0" max="1.0" value="0.36">
+            <input type="number" id="new-sugar" placeholder="Residual Sugar" step="0.1" min="0.9" max="15.5" value="20.7">
+            <input type="number" id="new-chlorides" placeholder="Chlorides" step="0.001" min="0.01" max="0.61" value="0.045">
+            <select id="new-quality">
+              <option value="3">Low Quality (3-5)</option>
+              <option value="6" selected>Medium Quality (6-7)</option>
+              <option value="8">High Quality (8-9)</option>
+            </select>
+            <button id="add-point"><i class="fas fa-plus"></i> Add Sample</button>
+          </div>
+          
+          <div class="control-group">
+            <h4>Dataset Operations</h4>
+            <button id="randomize-data"><i class="fas fa-random"></i> Randomize Data</button>
+            <button id="reset-data" class="warning"><i class="fas fa-undo"></i> Reset Data</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="demo">
+        <h3><i class="fas fa-flask"></i> Interactive XGBoost Demo</h3>
+        <p>Enter wine chemical properties to predict its quality with XGBoost:</p>
+        
+        <div class="controls">
+          <div class="control-group">
+            <label>Fixed Acidity: 
+              <input type="number" id="inputAcidity" min="4" max="16" step="0.1" value="7.0">
+            </label>
+            <label>Volatile Acidity: 
+              <input type="number" id="inputVolatile" min="0.1" max="1.6" step="0.01" value="0.27">
+            </label>
+            <label>Citric Acid: 
+              <input type="number" id="inputCitric" min="0" max="1.0" step="0.01" value="0.36">
+            </label>
+            <label>Residual Sugar: 
+              <input type="number" id="inputSugar" min="0.9" max="15.5" step="0.1" value="20.7">
+            </label>
+            <label>Chlorides: 
+              <input type="number" id="inputChlorides" min="0.01" max="0.61" step="0.001" value="0.045">
+            </label>
+            <button onclick="predict()" class="secondary"><i class="fas fa-magic"></i> Predict Quality</button>
+          </div>
+          
+          <div class="control-group">
+            <h4>XGBoost Parameters</h4>
+            <div class="slider-container">
+              <label>Learning Rate (η):</label>
+              <input type="range" id="learningRate" min="0.01" max="0.3" step="0.01" value="0.1">
+              <div class="slider-label">
+                <span>0.01 (Slow)</span>
+                <span id="lr-value">0.10</span>
+                <span>0.30 (Fast)</span>
+              </div>
+            </div>
+            
+            <div class="slider-container">
+              <label>Number of Trees:</label>
+              <input type="range" id="nEstimators" min="10" max="200" step="10" value="100">
+              <div class="slider-label">
+                <span>10</span>
+                <span id="n-value">100</span>
+                <span>200</span>
+              </div>
+            </div>
+            
+            <label>Max Depth: 
+              <select id="maxDepth">
+                <option value="3">3</option>
+                <option value="6" selected>6</option>
+                <option value="10">10</option>
+              </select>
+            </label>
+            <button id="retrain-model"><i class="fas fa-sync"></i> Retrain Model</button>
+          </div>
+        </div>
+        
+        <div id="prediction">
+          Enter wine properties and click "Predict Quality" to see the XGBoost prediction
+        </div>
+        
+        <div class="boosting-visualization">
+          <h3>How Boosting Works</h3>
+          <div class="boosting-steps">
+            <div class="boost-step">
+              <div class="icon"><i class="fas fa-database"></i></div>
+              <h4>Initial Data</h4>
+              <p>Raw wine samples with features</p>
+            </div>
+            <div class="boost-arrow">→</div>
+            <div class="boost-step">
+              <div class="icon"><i class="fas fa-tree"></i></div>
+              <h4>Tree 1</h4>
+              <p>Predicts initial quality</p>
+            </div>
+            <div class="boost-arrow">→</div>
+            <div class="boost-step">
+              <div class="icon"><i class="fas fa-calculator"></i></div>
+              <h4>Residuals</h4>
+              <p>Errors from Tree 1</p>
+            </div>
+            <div class="boost-arrow">→</div>
+            <div class="boost-step">
+              <div class="icon"><i class="fas fa-tree"></i></div>
+              <h4>Tree 2</h4>
+              <p>Predicts residuals</p>
+            </div>
+            <div class="boost-arrow">→</div>
+            <div class="boost-step">
+              <div class="icon"><i class="fas fa-chart-line"></i></div>
+              <h4>Final Prediction</h4>
+              <p>Combined result</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab-content" id="math">
+      <section class="lesson">
+        <h2><i class="fas fa-calculator"></i> Mathematical Foundation</h2>
+        <p>
+          XGBoost uses gradient descent to optimize a regularized objective function. Here's how it works:
+        </p>
+        
+        <div class="math-explanation">
+          <div class="step">
+            <h3>1. Objective Function</h3>
+            <p>XGBoost minimizes a regularized objective function:</p>
+            <div class="formula">
+              Obj(θ) = L(θ) + Ω(θ)
+            </div>
+            <p>Where L is the loss function (e.g., log loss) and Ω is the regularization term.</p>
+          </div>
+          
+          <div class="step">
+            <h3>2. Additive Training</h3>
+            <p>Predictions are built additively:</p>
+            <div class="formula">
+              ŷ<sub>i</sub><sup>(t)</sup> = ŷ<sub>i</sub><sup>(t-1)</sup> + f<sub>t</sub>(x<sub>i</sub>)
+            </div>
+            <p>Where f<sub>t</sub> is the new tree added at step t.</p>
+          </div>
+          
+          <div class="step">
+            <h3>3. Taylor Expansion</h3>
+            <p>The loss function is approximated using second-order Taylor expansion:</p>
+            <div class="formula">
+              Obj<sup>(t)</sup> ≈ Σ<sub>i</sub>[g<sub>i</sub>f<sub>t</sub>(x<sub>i</sub>) + ½h<sub>i</sub>f<sub>t</sub>²(x<sub>i</sub>)] + Ω(f<sub>t</sub>)
+            </div>
+            <p>Where g<sub>i</sub> and h<sub>i</sub> are first and second derivatives of the loss.</p>
+          </div>
+          
+          <div class="step">
+            <h3>4. Regularization</h3>
+            <p>The regularization term controls model complexity:</p>
+            <div class="formula">
+              Ω(f) = γT + ½λ||w||²
+            </div>
+            <p>Where T is the number of leaves, w is leaf weights, γ and λ are regularization parameters.</p>
+          </div>
+        </div>
+        
+        <h3>Key Parameters Explained</h3>
+        <ul style="margin-left: 1.5rem; margin-bottom: 1.5rem;">
+          <li><strong>learning_rate (η)</strong>: Shrinks contribution of each tree (0.01-0.3 typical)</li>
+          <li><strong>n_estimators</strong>: Number of boosting rounds (100-1000 typical)</li>
+          <li><strong>max_depth</strong>: Maximum depth of trees (3-10 typical)</li>
+          <li><strong>subsample</strong>: Fraction of samples used per tree (0.5-1.0)</li>
+          <li><strong>colsample_bytree</strong>: Fraction of features used per tree (0.5-1.0)</li>
+          <li><strong>gamma</strong>: Minimum loss reduction to make a split</li>
+          <li><strong>lambda</strong>: L2 regularization on leaf weights</li>
+          <li><strong>alpha</strong>: L1 regularization on leaf weights</li>
+        </ul>
+      </section>
+    </div>
+
+    <div class="tab-content" id="implementation">
+      <section class="lesson">
+        <h2><i class="fas fa-code"></i> Implementation in Python</h2>
+        <p>Here's how to implement XGBoost using the xgboost library:</p>
+        
+        <div class="python-code">
+          <pre><code># Import libraries
+import xgboost as xgb
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
+import pandas as pd
+
+# Load dataset
+data = pd.read_csv('winequality-red.csv')
+X = data.drop('quality', axis=1)
+y = data['quality']
+
+# Convert to binary classification (low vs high quality)
+y = (y >= 6).astype(int)
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Create and train model
+xgb_model = xgb.XGBClassifier(
+    n_estimators=100,      # Number of trees
+    learning_rate=0.1,     # Learning rate (eta)
+    max_depth=6,           # Maximum depth of trees
+    subsample=0.8,         # Fraction of samples per tree
+    colsample_bytree=0.8,  # Fraction of features per tree
+    random_state=42
+)
+xgb_model.fit(X_train, y_train)
+
+# Make predictions
+y_pred = xgb_model.predict(X_test)
+
+# Evaluate model
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy:.2f}")
+print(classification_report(y_test, y_pred))
+
+# Feature importance
+feature_importance = pd.Series(xgb_model.feature_importances_, index=X.columns)
+feature_importance.sort_values(ascending=False, inplace=True)
+print("Top 5 important features:")
+print(feature_importance.head())</code></pre>
+        </div>
+        
+        <div class="evaluation-metrics">
+          <h3>Model Evaluation Metrics</h3>
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <h5>Accuracy</h5>
+              <div class="value">91.2%</div>
+            </div>
+            <div class="metric-card">
+              <h5>Precision</h5>
+              <div class="value">90.5%</div>
+            </div>
+            <div class="metric-card">
+              <h5>Recall</h5>
+              <div class="value">92.0%</div>
+            </div>
+            <div class="metric-card">
+              <h5>F1-Score</h5>
+              <div class="value">91.2%</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab-content" id="comparison">
+      <section class="lesson">
+        <h2><i class="fas fa-balance-scale"></i> XGBoost vs. Random Forest</h2>
+        <p>Both are powerful tree-based ensemble methods, but they work differently:</p>
+        
+        <div class="comparison-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Random Forest</th>
+                <th>XGBoost</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Tree Building</td>
+                <td>Parallel (independent)</td>
+                <td class="highlight">Sequential (dependent)</td>
+              </tr>
+              <tr>
+                <td>Primary Goal</td>
+                <td>Reduce variance</td>
+                <td class="highlight">Reduce bias</td>
+              </tr>
+              <tr>
+                <td>Overfitting Control</td>
+                <td>Averaging + randomness</td>
+                <td class="highlight">Explicit regularization</td>
+              </tr>
+              <tr>
+                <td>Speed</td>
+                <td class="highlight">Faster training</td>
+                <td>Slower per tree</td>
+              </tr>
+              <tr>
+                <td>Accuracy</td>
+                <td>Good</td>
+                <td class="highlight">Often better</td>
+              </tr>
+              <tr>
+                <td>Hyperparameters</td>
+                <td>Fewer to tune</td>
+                <td class="highlight">More to optimize</td>
+              </tr>
+              <tr>
+                <td>Interpretability</td>
+                <td class="highlight">More transparent</td>
+                <td>Less transparent</td>
+              </tr>
+              <tr>
+                <td>Best For</td>
+                <td>Quick baseline, stable results</td>
+                <td class="highlight">Maximizing accuracy</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <h3>When to Use Which?</h3>
+        <div class="step">
+          <h3>Use Random Forest when:</h3>
+          <ul style="margin-left: 1.5rem;">
+            <li>You need a quick, robust baseline model</li>
+            <li>Interpretability is important</li>
+            <li>You have limited time for hyperparameter tuning</li>
+            <li>Your dataset has many irrelevant features</li>
+          </ul>
+        </div>
+        
+        <div class="step">
+          <h3>Use XGBoost when:</h3>
+          <ul style="margin-left: 1.5rem;">
+            <li>Maximizing predictive accuracy is critical</li>
+            <li>You're competing in Kaggle or similar</li>
+            <li>You have time to tune hyperparameters</li>
+            <li>Your dataset is tabular with meaningful features.</li>
+          </ul>
+        </div>
+        
+        <div class="math-explanation">
+          <h3>Practical Tip: Try Both!</h3>
+          <p>In practice, it's common to try both algorithms and compare results. Many winning solutions actually combine both in a final ensemble!.</p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+    <section class="navigation">
+      <a href="random-forest.html" class="card-btn" target="_blank"><i class="fas fa-backward"></i> Previous: Random Forest</a>
+      <a href="LightGBM.html" class="cta-btn" target="_blank"><i class="fas fa-forward"></i> Next: LightGBM </a>
+    </section>
+  </main>
+
+  <footer>
+    <p>Simplified Machine Learning  Concepts Through Interactive Examples</p>
+    <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">&copy; 2025 Machine Learning | AlgoNation • Learn by doing</p>
+  </footer>
+  <script>
+    // Sample wine data
+    let wineData = [
+      {id: 1, acidity: 7.4, volatile: 0.7, citric: 0.0, sugar: 1.9, chlorides: 0.076, quality: 5},
+      {id: 2, acidity: 7.8, volatile: 0.88, citric: 0.0, sugar: 2.6, chlorides: 0.098, quality: 5},
+      {id: 3, acidity: 7.8, volatile: 0.76, citric: 0.04, sugar: 2.3, chlorides: 0.092, quality: 5},
+      {id: 4, acidity: 11.2, volatile: 0.28, citric: 0.56, sugar: 1.9, chlorides: 0.075, quality: 6},
+      {id: 5, acidity: 7.4, volatile: 0.7, citric: 0.0, sugar: 1.9, chlorides: 0.076, quality: 5},
+      {id: 6, acidity: 7.4, volatile: 0.66, citric: 0.0, sugar: 1.8, chlorides: 0.075, quality: 5},
+      {id: 7, acidity: 7.9, volatile: 0.6, citric: 0.06, sugar: 1.6, chlorides: 0.069, quality: 5},
+      {id: 8, acidity: 7.3, volatile: 0.65, citric: 0.0, sugar: 1.2, chlorides: 0.065, quality: 7},
+      {id: 9, acidity: 7.8, volatile: 0.58, citric: 0.02, sugar: 2.0, chlorides: 0.073, quality: 7},
+      {id: 10, acidity: 7.5, volatile: 0.5, citric: 0.36, sugar: 6.1, chlorides: 0.071, quality: 6}
+    ];
+
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+      renderDataset();
+      setupEventListeners();
+      setupSliders();
+    });
+
+    // Render dataset table
+    function renderDataset() {
+      const tbody = document.getElementById('dataset-body');
+      tbody.innerHTML = '';
+      
+      wineData.forEach(wine => {
+        const row = document.createElement('tr');
+        const qualityClass = wine.quality <= 5 ? 'quality-low' : 
+                           wine.quality <= 7 ? 'quality-medium' : 'quality-high';
+        const qualityText = wine.quality <= 5 ? 'Low' : 
+                          wine.quality <= 7 ? 'Medium' : 'High';
+        
+        row.innerHTML = `
+          <td>${wine.id}</td>
+          <td>${wine.acidity.toFixed(1)}</td>
+          <td>${wine.volatile.toFixed(2)}</td>
+          <td>${wine.citric.toFixed(2)}</td>
+          <td>${wine.sugar.toFixed(1)}</td>
+          <td>${wine.chlorides.toFixed(3)}</td>
+          <td><span class="quality-indicator ${qualityClass}"></span>${qualityText}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // Setup event listeners
+    function setupEventListeners() {
+      // Tab switching
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          // Remove active class from all tabs and content
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          
+          // Add active class to clicked tab
+          tab.classList.add('active');
+          
+          // Show corresponding content
+          const tabId = tab.getAttribute('data-tab');
+          document.getElementById(tabId).classList.add('active');
+        });
+      });
+      
+      // Add new data point
+      document.getElementById('add-point').addEventListener('click', addDataPoint);
+      
+      // Randomize data
+      document.getElementById('randomize-data').addEventListener('click', randomizeData);
+      
+      // Reset data
+      document.getElementById('reset-data').addEventListener('click', resetData);
+      
+      // Retrain model
+      document.getElementById('retrain-model').addEventListener('click', retrainModel);
+    }
+
+    // Setup sliders
+    function setupSliders() {
+      const lrSlider = document.getElementById('learningRate');
+      const nSlider = document.getElementById('nEstimators');
+      const lrValue = document.getElementById('lr-value');
+      const nValue = document.getElementById('n-value');
+      
+      lrSlider.addEventListener('input', () => {
+        lrValue.textContent = parseFloat(lrSlider.value).toFixed(2);
+      });
+      
+      nSlider.addEventListener('input', () => {
+        nValue.textContent = nSlider.value;
+      });
+    }
+
+    // Add new data point
+    function addDataPoint() {
+      const acidity = parseFloat(document.getElementById('new-acidity').value);
+      const volatile = parseFloat(document.getElementById('new-volatile').value);
+      const citric = parseFloat(document.getElementById('new-citric').value);
+      const sugar = parseFloat(document.getElementById('new-sugar').value);
+      const chlorides = parseFloat(document.getElementById('new-chlorides').value);
+      const quality = parseInt(document.getElementById('new-quality').value);
+      
+      if (isNaN(acidity) || isNaN(volatile) || isNaN(citric) || isNaN(sugar) || isNaN(chlorides)) {
+        alert('Please enter valid numbers for all fields');
+        return;
+      }
+      
+      const newId = wineData.length > 0 ? Math.max(...wineData.map(w => w.id)) + 1 : 1;
+      wineData.push({
+        id: newId,
+        acidity: acidity,
+        volatile: volatile,
+        citric: citric,
+        sugar: sugar,
+        chlorides: chlorides,
+        quality: quality
+      });
+      
+      renderDataset();
+    }
+
+    // Randomize data
+    function randomizeData() {
+      wineData = wineData.map(wine => ({
+        ...wine,
+        acidity: (Math.random() * 12 + 4).toFixed(1),
+        volatile: (Math.random() * 1.5 + 0.1).toFixed(2),
+        citric: (Math.random() * 1).toFixed(2),
+        sugar: (Math.random() * 14.6 + 0.9).toFixed(1),
+        chlorides: (Math.random() * 0.6 + 0.01).toFixed(3),
+        quality: Math.random() > 0.5 ? 6 : 3
+      }));
+      renderDataset();
+    }
+
+    // Reset data
+    function resetData() {
+      wineData = [
+        {id: 1, acidity: 7.4, volatile: 0.7, citric: 0.0, sugar: 1.9, chlorides: 0.076, quality: 5},
+        {id: 2, acidity: 7.8, volatile: 0.88, citric: 0.0, sugar: 2.6, chlorides: 0.098, quality: 5},
+        {id: 3, acidity: 7.8, volatile: 0.76, citric: 0.04, sugar: 2.3, chlorides: 0.092, quality: 5},
+        {id: 4, acidity: 11.2, volatile: 0.28, citric: 0.56, sugar: 1.9, chlorides: 0.075, quality: 6},
+        {id: 5, acidity: 7.4, volatile: 0.7, citric: 0.0, sugar: 1.9, chlorides: 0.076, quality: 5},
+        {id: 6, acidity: 7.4, volatile: 0.66, citric: 0.0, sugar: 1.8, chlorides: 0.075, quality: 5},
+        {id: 7, acidity: 7.9, volatile: 0.6, citric: 0.06, sugar: 1.6, chlorides: 0.069, quality: 5},
+        {id: 8, acidity: 7.3, volatile: 0.65, citric: 0.0, sugar: 1.2, chlorides: 0.065, quality: 7},
+        {id: 9, acidity: 7.8, volatile: 0.58, citric: 0.02, sugar: 2.0, chlorides: 0.073, quality: 7},
+        {id: 10, acidity: 7.5, volatile: 0.5, citric: 0.36, sugar: 6.1, chlorides: 0.071, quality: 6}
+      ];
+      renderDataset();
+    }
+
+    // Retrain model
+    function retrainModel() {
+      // In a real implementation, this would retrain the model
+      // For this demo, we'll just show a success message
+      document.getElementById('prediction').textContent = 'XGBoost model retrained successfully!';
+      document.getElementById('prediction').className = 'prediction-medium';
+    }
+
+    // Predict function
+    function predict() {
+      const acidity = parseFloat(document.getElementById('inputAcidity').value);
+      const volatile = parseFloat(document.getElementById('inputVolatile').value);
+      const citric = parseFloat(document.getElementById('inputCitric').value);
+      const sugar = parseFloat(document.getElementById('inputSugar').value);
+      const chlorides = parseFloat(document.getElementById('inputChlorides').value);
+      
+      if (isNaN(acidity) || isNaN(volatile) || isNaN(citric) || isNaN(sugar) || isNaN(chlorides)) {
+        alert('Please enter valid numbers for all fields');
+        return;
+      }
+      
+      // Simple prediction logic for demo (in reality, this would use the trained model)
+      let quality = 6; // Default medium quality
+      
+      // Adjust based on inputs - XGBoost typically gives better results
+      if (volatile < 0.3 && citric > 0.3 && chlorides < 0.05) {
+        quality = 8; // High quality
+      } else if (volatile > 0.8 || chlorides > 0.1) {
+        quality = 3; // Low quality
+      } else if (volatile < 0.4 && citric > 0.2) {
+        quality = 7; // Medium-high quality
+      }
+      
+      const predictionDiv = document.getElementById('prediction');
+      if (quality <= 5) {
+        predictionDiv.textContent = `XGBoost Prediction: Low Quality (${quality})`;
+        predictionDiv.className = 'prediction-low';
+      } else if (quality <= 7) {
+        predictionDiv.textContent = `XGBoost Prediction: Medium Quality (${quality})`;
+        predictionDiv.className = 'prediction-medium';
+      } else {
+        predictionDiv.textContent = `XGBoost Prediction: High Quality (${quality})`;
+        predictionDiv.className = 'prediction-high';
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Linear Regression | ML AlgoNation </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-light: #6366f1;
+      --secondary: #059669;
+      --accent: #f59e0b;
+      --dark: #1f2937;
+      --light: #f9fafb;
+      --gray: #6b7280;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --info: #3b82f6;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: var(--dark);
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      min-height: 100vh;
+    }
+    
+    header {
+      background: linear-gradient(120deg, var(--primary), var(--secondary));
+      color: white;
+      padding: 2rem 0;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    header::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.1)"/></svg>');
+      background-size: cover;
+    }
+    
+    header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      position: relative;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    main {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+    
+    .lesson {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .lesson:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+    
+    h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 3px solid var(--primary-light);
+    }
+    
+    h3 {
+      font-size: 1.4rem;
+      margin: 1.5rem 0 1rem;
+      color: var(--secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    p {
+      margin-bottom: 1.25rem;
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+    
+    code {
+      background: #f1f5f9;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-family: 'Courier New', Courier, monospace;
+      font-weight: 500;
+      color: var(--primary);
+    }
+    
+    .dataset-container {
+      margin: 1.5rem 0;
+      overflow-x: auto;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    th, td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    th {
+      background: linear-gradient(120deg, var(--primary), var(--primary-light));
+      color: white;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+    
+    tr:hover {
+      background-color: #f1f5f9;
+      transition: background-color 0.2s ease;
+    }
+    
+    .demo {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .demo:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    }
+    
+    #regressionCanvas {
+      width: 100%;
+      max-width: 600px;
+      height: 400px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      background: #f8fafc;
+      margin: 1.5rem auto;
+      display: block;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    #equation {
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--primary);
+      background: linear-gradient(120deg, #f0f9ff, #e0f2fe);
+      padding: 1rem;
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      border-left: 4px solid var(--secondary);
+    }
+    
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin: 2rem 0;
+      justify-content: center;
+    }
+    
+    .control-group {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      min-width: 250px;
+    }
+    
+    .control-group h4 {
+      margin-bottom: 1rem;
+      color: var(--dark);
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    button:hover {
+      background: var(--primary-light);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3);
+    }
+    
+    button.secondary {
+      background: var(--secondary);
+    }
+    
+    button.secondary:hover {
+      background: #047857;
+      box-shadow: 0 4px 8px rgba(5, 150, 105, 0.3);
+    }
+    
+    button.warning {
+      background: var(--warning);
+    }
+    
+    button.warning:hover {
+      background: #d97706;
+      box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 1rem;
+      margin-top: 0.5rem;
+      transition: border-color 0.3s ease;
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+    }
+    
+    .navigation {
+      display: flex;
+      justify-content: space-between;
+      margin: 2rem 0;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    
+    .card-btn, .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+    
+    .card-btn {
+      background: white;
+      color: var(--dark);
+      border: 2px solid #e5e7eb;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .card-btn:hover {
+      background: #f8fafc;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .cta-btn {
+      background: linear-gradient(120deg, var(--primary), var(--primary-light));
+      color: white;
+      box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+    }
+    
+    .cta-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(79, 70, 229, 0.4);
+    }
+    
+    footer {
+      text-align: center;
+      padding: 2rem;
+      background: var(--dark);
+      color: white;
+      margin-top: 3rem;
+    }
+    
+    .math-explanation {
+      background: #f0fdf4;
+      border: 2px solid #bbf7d0;
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 2rem 0;
+      position: relative;
+    }
+    
+    .math-explanation::before {
+      content: "Mathematical Derivation";
+      position: absolute;
+      top: -12px;
+      left: 20px;
+      background: #059669;
+      color: white;
+      padding: 0.25rem 1rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    
+    .formula {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin: 1rem 0;
+      text-align: center;
+      font-family: 'Courier New', monospace;
+      font-size: 1.2rem;
+      border-left: 4px solid var(--secondary);
+    }
+    
+    .step {
+      margin: 1.5rem 0;
+      padding-left: 1.5rem;
+      border-left: 3px solid var(--accent);
+      position: relative;
+    }
+    
+    .step::before {
+      content: "Step";
+      position: absolute;
+      left: -15px;
+      top: 0;
+      background: var(--accent);
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+    
+    .tabs {
+      display: flex;
+      margin: 2rem 0;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    
+    .tab {
+      padding: 1rem 2rem;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--gray);
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s ease;
+    }
+    
+    .tab.active {
+      color: var(--primary);
+      border-bottom: 3px solid var(--primary);
+    }
+    
+    .tab-content {
+      display: none;
+      padding: 2rem 0;
+    }
+    
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      border-bottom: 1px dotted var(--primary);
+      cursor: help;
+    }
+    
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 250px;
+      background-color: var(--dark);
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 10px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+    
+    .tooltip .tooltiptext::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: var(--dark) transparent transparent transparent;
+    }
+    
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    @media (max-width: 768px) {
+      header h1 {
+        font-size: 2rem;
+      }
+      
+      .lesson, .demo {
+        padding: 1.5rem;
+      }
+      
+      .navigation {
+        flex-direction: column;
+      }
+      
+      .card-btn, .cta-btn {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .controls {
+        flex-direction: column;
+      }
+    }
+    #randomize-data{
+      margin-bottom: 10px;
+    }
+    #add-point{
+    margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><i class="fas fa-chart-line"></i> Linear Regression</h1>
+    <p>Discover how to model relationships between variables using the most fundamental machine learning algorithm</p>
+  </header>
+
+  <main>
+    <div class="tabs">
+      <div class="tab active" data-tab="concept">Concept</div>
+      <div class="tab" data-tab="math">Mathematics</div>
+      <div class="tab" data-tab="implementation">Implementation</div>
+      <div class="tab" data-tab="applications">Applications</div>
+    </div>
+
+    <div class="tab-content active" id="concept">
+      <section class="lesson">
+        <h2><i class="fas fa-lightbulb"></i> What is Linear Regression?</h2>
+        <p>
+          Linear Regression is one of the simplest and most widely used <strong>Supervised Machine Learning</strong> algorithms. 
+          It finds the best-fitting straight line (<code>y = mx + b</code>) to predict outcomes based on input features.
+          This algorithm belongs to the family of <span class="tooltip">supervised learning<span class="tooltiptext">A type of machine learning where the model learns from labeled training data</span></span> algorithms, where we have both input variables (X) and output variables (Y), and we aim to find a mathematical relationship between them.
+        </p>
+        
+        <p>
+          The term "linear" refers to the fact that the relationship between the input and output is modeled as a straight line.
+          "Regression" refers to the fact that we're predicting continuous values (as opposed to classification, which predicts discrete categories).
+          Linear regression is particularly useful when you want to understand how changes in one variable affect another variable.
+        </p>
+
+        <h3><i class="fas fa-database"></i> Sample Dataset: Study Hours vs. Test Scores</h3>
+        <p>Let's examine a practical example where we want to predict students' test scores based on the number of hours they study:</p>
+        
+        <div class="dataset-container">
+          <table id="dataset-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Study Hours (X)</th>
+                <th>Test Score (Y)</th>
+                <th>X²</th>
+                <th>XY</th>
+                <th>Deviation from Mean</th>
+              </tr>
+            </thead>
+            <tbody id="dataset-body">
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="controls">
+          <div class="control-group">
+            <h4>Add New Data Point</h4>
+            <input type="number" id="new-x" placeholder="Study Hours" step="0.1" min="0">
+            <input type="number" id="new-y" placeholder="Test Score" step="0.1" min="0" max="100">
+            <button id="add-point"><i class="fas fa-plus"></i> Add Point</button>
+          </div>
+          
+          <div class="control-group">
+            <h4>Dataset Operations</h4>
+            <button id="randomize-data"><i class="fas fa-random"></i> Randomize Data</button>
+            <button id="reset-data" class="warning"><i class="fas fa-undo"></i> Reset Data</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="demo">
+        <h3><i class="fas fa-flask"></i> Interactive Visualization</h3>
+        <p>Drag points to adjust the dataset and see how the regression line updates in real-time!</p>
+        <canvas id="regressionCanvas" width="600" height="400"></canvas>
+        <div id="equation">
+          <strong>Best Fit Line:</strong> y = 0.00x + 0.00
+        </div>
+        
+        <div class="controls">
+          <div class="control-group">
+            <h4>Model Metrics</h4>
+            <p><strong>Slope (m):</strong> <span id="slope-value">0.00</span></p>
+            <p><strong>Intercept (b):</strong> <span id="intercept-value">0.00</span></p>
+            <p><strong>R² (Coefficient of Determination):</strong> <span id="r2-value">0.00</span></p>
+            <p><strong>Mean Squared Error:</strong> <span id="mse-value">0.00</span></p>
+          </div>
+          
+          <div class="control-group">
+            <h4>Visualization Options</h4>
+            <label>
+              <input type="checkbox" id="show-grid" checked> Show Grid
+            </label>
+            <label>
+              <input type="checkbox" id="show-residuals" checked> Show Residuals
+            </label>
+            <label>
+              <input type="checkbox" id="show-prediction" checked> Show Prediction Line
+            </label>
+            <button id="animate-regression" class="secondary"><i class="fas fa-play"></i> Animate Regression</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab-content" id="math">
+      <section class="lesson">
+        <h2><i class="fas fa-calculator"></i> Mathematical Foundation</h2>
+        <p>
+          Linear regression is based on the principle of <span class="tooltip">least squares<span class="tooltiptext">A mathematical optimization technique that minimizes the sum of squared differences between observed and predicted values</span></span>. 
+          The goal is to find the line that minimizes the sum of the squared vertical distances (residuals) between the observed data points and the predicted values on the line.
+        </p>
+        
+        <div class="math-explanation">
+          <div class="step">
+            <h3>Step 1: The Linear Model</h3>
+            <p>We assume a linear relationship between our input variable X and output variable Y:</p>
+            <div class="formula">y = mx + b</div>
+            <p>Where:</p>
+            <ul>
+              <li><strong>y</strong> is the predicted output (dependent variable)</li>
+              <li><strong>x</strong> is the input feature (independent variable)</li>
+              <li><strong>m</strong> is the slope of the line (how much y changes for a unit change in x)</li>
+              <li><strong>b</strong> is the y-intercept (the value of y when x = 0)</li>
+            </ul>
+          </div>
+          
+          <div class="step">
+            <h3>Step 2: The Cost Function</h3>
+            <p>We define the cost (or loss) function as the sum of squared errors:</p>
+            <div class="formula">J(m,b) = Σ(yᵢ - (mxᵢ + b))²</div>
+            <p>This function measures how well our line fits the data. Our goal is to find m and b that minimize J(m,b).</p>
+          </div>
+          
+          <div class="step">
+            <h3>Step 3: Finding Optimal Parameters</h3>
+            <p>To find the values of m and b that minimize the cost function, we take partial derivatives with respect to m and b, set them to zero, and solve:</p>
+            <div class="formula">m = (nΣ(xᵢyᵢ) - ΣxᵢΣyᵢ) / (nΣ(xᵢ²) - (Σxᵢ)²)</div>
+            <div class="formula">b = (Σyᵢ - mΣxᵢ) / n</div>
+            <p>Where n is the number of data points.</p>
+          </div>
+          
+          <div class="step">
+            <h3>Step 4: Model Evaluation</h3>
+            <p>We evaluate our model using metrics like R² (coefficient of determination):</p>
+            <div class="formula">R² = 1 - (SS_res / SS_tot)</div>
+            <p>Where SS_res is the sum of squares of residuals and SS_tot is the total sum of squares. R² ranges from 0 to 1, with higher values indicating better fit.</p>
+          </div>
+        </div>
+        
+        <h3><i class="fas fa-chart-bar"></i> Statistical Significance</h3>
+        <p>
+          Beyond just fitting a line, it's important to assess whether the relationship we've found is statistically significant.
+          We can calculate the <span class="tooltip">p-value<span class="tooltiptext">A measure of the evidence against a null hypothesis. A small p-value (typically ≤ 0.05) indicates strong evidence against the null hypothesis</span></span> for the slope coefficient to determine if there's a real relationship between X and Y, or if we're just seeing random noise.
+        </p>
+        
+        <div class="formula">
+          t = m / SE(m)<br>
+          p-value = 2 × (1 - F(|t|))
+        </div>
+        <p>Where SE(m) is the standard error of the slope and F is the cumulative distribution function of the t-distribution.</p>
+      </section>
+    </div>
+
+    <div class="tab-content" id="implementation">
+      <section class="lesson">
+        <h2><i class="fas fa-code"></i> Implementation Details</h2>
+        <p>
+          Let's break down the implementation of linear regression into manageable components. Understanding each part will help you implement and modify the algorithm for different use cases.
+        </p>
+        
+        <h3><i class="fas fa-cogs"></i> Algorithm Implementation</h3>
+        <pre id="code-implementation" style="background: #1e293b; color: #e2e8f0; padding: 1.5rem; border-radius: 8px; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.95rem; line-height: 1.5;">
+# 📊 Linear Regression - Data Analysis & Visualization (Positive Relationship)
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+
+# ✅ Generate dataset with positive correlation
+np.random.seed(42)
+df = pd.DataFrame({
+    'study_hours': np.random.uniform(1, 10, 100),  # 100 students, 1–10 hours
+})
+# Test scores increase with study_hours + some random noise
+df['test_scores'] = 20 + 7.5 * df['study_hours'] + np.random.normal(0, 10, 100)
+
+# 🔍 Basic Data Exploration
+print("Dataset shape:", df.shape)
+print("\nBasic statistics:")
+print(df.describe())
+
+# 📈 Essential Visualizations
+plt.figure(figsize=(15, 10))
+
+# 1. Scatter plot with trend line
+plt.subplot(2, 3, 1)
+plt.scatter(df['study_hours'], df['test_scores'], alpha=0.6)
+z = np.polyfit(df['study_hours'], df['test_scores'], 1)
+p = np.poly1d(z)
+plt.plot(df['study_hours'], p(df['study_hours']), "r--", label=f'y={z[0]:.2f}x+{z[1]:.2f}')
+plt.title('Study Hours vs Test Scores')
+plt.xlabel('Study Hours')
+plt.ylabel('Test Scores')
+plt.legend()
+plt.grid(True, alpha=0.3)
+
+# 2. Histograms
+plt.subplot(2, 3, 2)
+plt.hist(df['study_hours'], bins=15, alpha=0.7, color='blue')
+plt.title('Distribution of Study Hours')
+plt.xlabel('Study Hours')
+plt.ylabel('Frequency')
+
+plt.subplot(2, 3, 3)
+plt.hist(df['test_scores'], bins=15, alpha=0.7, color='green')
+plt.title('Distribution of Test Scores')
+plt.xlabel('Test Scores')
+plt.ylabel('Frequency')
+
+# 3. Correlation heatmap
+plt.subplot(2, 3, 4)
+correlation = df.corr()
+sns.heatmap(correlation, annot=True, cmap='coolwarm', center=0)
+plt.title('Correlation Matrix')
+
+# 4. Box plots
+plt.subplot(2, 3, 5)
+plt.boxplot(df['study_hours'])
+plt.title('Study Hours Box Plot')
+plt.ylabel('Hours')
+
+plt.subplot(2, 3, 6)
+plt.boxplot(df['test_scores'])
+plt.title('Test Scores Box Plot')
+plt.ylabel('Scores')
+
+plt.tight_layout()
+plt.show()
+
+# 📊 Quick correlation analysis
+correlation_value = df['study_hours'].corr(df['test_scores'])
+print(f"\nCorrelation coefficient: {correlation_value:.4f}")
+print(f"Strength: {'Strong' if abs(correlation_value) > 0.7 else 'Moderate' if abs(correlation_value) > 0.3 else 'Weak'}")
+        </pre>
+        
+        <h3><i class="fas fa-project-diagram"></i> Gradient Descent Alternative</h3>
+        <p>
+          While the analytical solution (least squares) works well for simple linear regression, more complex models often use <span class="tooltip">gradient descent<span class="tooltiptext">An iterative optimization algorithm used to find the minimum of a function by moving in the direction of steepest descent</span></span>.
+          Here's how you could implement linear regression using gradient descent:
+        </p>
+        
+        <pre style="background: #1e293b; color: #e2e8f0; padding: 1.5rem; border-radius: 8px; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.95rem; line-height: 1.5;">
+# 📊 Linear Regression - Data Analysis & Visualization (Positive Relationship)
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+
+# ✅ Generate dataset with positive correlation
+np.random.seed(42)
+df = pd.DataFrame({
+    'study_hours': np.random.uniform(1, 10, 100),  # 100 students, 1–10 hours
+})
+# Test scores increase with study_hours + some random noise
+df['test_scores'] = 20 + 7.5 * df['study_hours'] + np.random.normal(0, 10, 100)
+
+# 🔍 Basic Data Exploration
+print("Dataset shape:", df.shape)
+print("\nBasic statistics:")
+print(df.describe())
+
+# 📈 Essential Visualizations
+plt.figure(figsize=(15, 10))
+
+# 1. Scatter plot with trend line
+plt.subplot(2, 3, 1)
+plt.scatter(df['study_hours'], df['test_scores'], alpha=0.6)
+z = np.polyfit(df['study_hours'], df['test_scores'], 1)
+p = np.poly1d(z)
+plt.plot(df['study_hours'], p(df['study_hours']), "r--", label=f'y={z[0]:.2f}x+{z[1]:.2f}')
+plt.title('Study Hours vs Test Scores')
+plt.xlabel('Study Hours')
+plt.ylabel('Test Scores')
+plt.legend()
+plt.grid(True, alpha=0.3)
+
+# 2. Histograms
+plt.subplot(2, 3, 2)
+plt.hist(df['study_hours'], bins=15, alpha=0.7, color='blue')
+plt.title('Distribution of Study Hours')
+plt.xlabel('Study Hours')
+plt.ylabel('Frequency')
+
+plt.subplot(2, 3, 3)
+plt.hist(df['test_scores'], bins=15, alpha=0.7, color='green')
+plt.title('Distribution of Test Scores')
+plt.xlabel('Test Scores')
+plt.ylabel('Frequency')
+
+# 3. Correlation heatmap
+plt.subplot(2, 3, 4)
+correlation = df.corr()
+sns.heatmap(correlation, annot=True, cmap='coolwarm', center=0)
+plt.title('Correlation Matrix')
+
+# 4. Box plots
+plt.subplot(2, 3, 5)
+plt.boxplot(df['study_hours'])
+plt.title('Study Hours Box Plot')
+plt.ylabel('Hours')
+
+plt.subplot(2, 3, 6)
+plt.boxplot(df['test_scores'])
+plt.title('Test Scores Box Plot')
+plt.ylabel('Scores')
+
+plt.tight_layout()
+plt.show()
+
+# 📊 Quick correlation analysis
+correlation_value = df['study_hours'].corr(df['test_scores'])
+print(f"\nCorrelation coefficient: {correlation_value:.4f}")
+print(f"Strength: {'Strong' if abs(correlation_value) > 0.7 else 'Moderate' if abs(correlation_value) > 0.3 else 'Weak'}")
+     </pre>
+      </section>
+    </div>
+
+    <div class="tab-content" id="applications">
+      <section class="lesson">
+        <h2><i class="fas fa-rocket"></i> Real-World Applications</h2>
+        <p>
+          Linear regression is one of the most widely used statistical techniques in various fields. Its simplicity, interpretability, and effectiveness make it a go-to method for many predictive modeling tasks.
+        </p>
+        
+        <h3><i class="fas fa-industry"></i> Business and Economics</h3>
+        <ul>
+          <li><strong>Sales Forecasting:</strong> Predict future sales based on advertising spend, seasonality, or economic indicators</li>
+          <li><strong>Price Elasticity:</strong> Understand how changes in price affect demand for products</li>
+          <li><strong>Risk Assessment:</strong> Evaluate credit risk based on income, debt, and payment history</li>
+          <li><strong>Market Analysis:</strong> Model relationships between market factors and stock prices</li>
+        </ul>
+        
+        <h3><i class="fas fa-heartbeat"></i> Healthcare and Science</h3>
+        <ul>
+          <li><strong>Drug Dosage:</strong> Determine optimal medication dosage based on patient weight and age</li>
+          <li><strong>Disease Progression:</strong> Model how diseases progress over time based on various factors</li>
+          <li><strong>Environmental Science:</strong> Study relationships between pollution levels and health outcomes</li>
+          <li><strong>Physics Experiments:</strong> Analyze experimental data to verify physical laws and relationships</li>
+        </ul>
+        
+        <h3><i class="fas fa-graduation-cap"></i> Education and Social Sciences</h3>
+        <ul>
+          <li><strong>Educational Outcomes:</strong> Predict student performance based on study habits, attendance, and socioeconomic factors</li>
+          <li><strong>Social Mobility:</strong> Study how parental income affects children's future earnings</li>
+          <li><strong>Psychological Studies:</strong> Analyze relationships between different psychological metrics</li>
+          <li><strong>Policy Analysis:</strong> Evaluate the impact of policy changes on various social indicators</li>
+        </ul>
+        
+        <h3><i class="fas fa-exclamation-triangle"></i> Limitations and Considerations</h3>
+        <p>While linear regression is powerful, it has several important limitations:</p>
+        <ul>
+          <li><strong>Linearity Assumption:</strong> It assumes a linear relationship between variables, which may not always hold true</li>
+          <li><strong>Sensitivity to Outliers:</strong> A few extreme values can significantly affect the regression line</li>
+          <li><strong>Multicollinearity:</strong> When predictor variables are highly correlated, it can make the model unstable</li>
+          <li><strong>Homoscedasticity:</strong> Assumes constant variance of errors across all levels of predictors</li>
+          <li><strong>Normality of Residuals:</strong> For statistical inference, residuals should be normally distributed</li>
+        </ul>
+        
+        <div class="math-explanation" style="background: #fffbeb; border-color: #fde68a;">
+          <h3>When to Use Linear Regression</h3>
+          <p>Linear regression is appropriate when:</p>
+          <ol>
+            <li>You want to predict a continuous outcome variable</li>
+            <li>You believe there's a linear relationship between your variables</li>
+            <li>You need an interpretable model (you can explain how each feature affects the prediction)</li>
+            <li>Your dataset isn't too large (for the analytical solution)</li>
+            <li>You want to understand the strength and direction of relationships between variables</li>
+          </ol>
+        </div>
+      </section>
+    </div>
+
+    <section class="navigation">
+      <a href="index.html" class="card-btn" target="_blank"><i class="fas fa-backward"></i> Previous: Introduction to ML</a>
+      <a href="logistic-regression.html" class="cta-btn" target="_blank"><i class="fas fa-forward"></i> Next: Logistic Regression</a>
+    </section>
+  </main>
+
+  <footer>
+    <p>Simplified Machine Learning  Concepts Through Interactive Examples</p>
+    <p style="margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.8;">&copy; 2025 Machine Learning | AlgoNation • Learn by doing</p>
+  </footer>
+
+  <script>
+    // Dataset management
+    let data = [
+      {x: 1, y: 2},
+      {x: 2, y: 4},
+      {x: 3, y: 5},
+      {x: 4, y: 4},
+      {x: 5, y: 5},
+      {x: 6, y: 7},
+      {x: 7, y: 8}
+    ];
+    
+    let draggedPoint = null;
+    let animationFrameId = null;
+    let isAnimating = false;
+    
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+      updateDatasetTable();
+      drawRegression();
+      setupEventListeners();
+      setupTabs();
+    });
+    
+    function setupTabs() {
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+          // Remove active class from all tabs and content
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          
+          // Add active class to clicked tab
+          this.classList.add('active');
+          
+          // Show corresponding content
+          const tabId = this.getAttribute('data-tab');
+          document.getElementById(tabId).classList.add('active');
+        });
+      });
+    }
+    
+    function setupEventListeners() {
+      // Add new data point
+      document.getElementById('add-point').addEventListener('click', function() {
+        const xInput = document.getElementById('new-x');
+        const yInput = document.getElementById('new-y');
+        
+        const x = parseFloat(xInput.value);
+        const y = parseFloat(yInput.value);
+        
+        if (!isNaN(x) && !isNaN(y) && x >= 0 && y >= 0 && y <= 100) {
+          data.push({x, y});
+          updateDatasetTable();
+          drawRegression();
+          xInput.value = '';
+          yInput.value = '';
+        } else {
+          alert('Please enter valid values: X ≥ 0, 0 ≤ Y ≤ 100');
+        }
+      });
+      
+      // Randomize data
+      document.getElementById('randomize-data').addEventListener('click', function() {
+        data = [];
+        const count = 8 + Math.floor(Math.random() * 5);
+        for (let i = 0; i < count; i++) {
+          const x = 1 + Math.random() * 9;
+          const noise = (Math.random() - 0.5) * 4;
+          const y = 2 + x * 1.2 + noise;
+          data.push({x: parseFloat(x.toFixed(2)), y: parseFloat(Math.max(0, Math.min(100, y)).toFixed(2))});
+        }
+        updateDatasetTable();
+        drawRegression();
+      });
+      
+      // Reset data
+      document.getElementById('reset-data').addEventListener('click', function() {
+        data = [
+          {x: 1, y: 2},
+          {x: 2, y: 4},
+          {x: 3, y: 5},
+          {x: 4, y: 4},
+          {x: 5, y: 5},
+          {x: 6, y: 7},
+          {x: 7, y: 8}
+        ];
+        updateDatasetTable();
+        drawRegression();
+      });
+      
+      // Animation toggle
+      document.getElementById('animate-regression').addEventListener('click', function() {
+        if (isAnimating) {
+          cancelAnimationFrame(animationFrameId);
+          isAnimating = false;
+          this.innerHTML = '<i class="fas fa-play"></i> Animate Regression';
+          drawRegression();
+        } else {
+          animateRegression();
+          isAnimating = true;
+          this.innerHTML = '<i class="fas fa-pause"></i> Stop Animation';
+        }
+      });
+      
+      // Visualization options
+      document.getElementById('show-grid').addEventListener('change', drawRegression);
+      document.getElementById('show-residuals').addEventListener('change', drawRegression);
+      document.getElementById('show-prediction').addEventListener('change', drawRegression);
+    }
+    
+    function updateDatasetTable() {
+      const tableBody = document.getElementById('dataset-body');
+      tableBody.innerHTML = '';
+      
+      // Calculate means for deviation
+      const meanX = data.reduce((sum, point) => sum + point.x, 0) / data.length;
+      const meanY = data.reduce((sum, point) => sum + point.y, 0) / data.length;
+      
+      data.forEach((point, index) => {
+        const row = document.createElement('tr');
+        
+        // Calculate additional values
+        const xSquared = point.x * point.x;
+        const xy = point.x * point.y;
+        const deviation = Math.sqrt(Math.pow(point.x - meanX, 2) + Math.pow(point.y - meanY, 2));
+        
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${point.x}</td>
+          <td>${point.y}</td>
+          <td>${xSquared.toFixed(2)}</td>
+          <td>${xy.toFixed(2)}</td>
+          <td>${deviation.toFixed(4)}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+    
+    // Compute linear regression parameters (least squares)
+    function linearRegression(points) {
+      const n = points.length;
+      if (n < 2) return {m: 0, b: 0, r2: 0, mse: 0};
+      
+      const sumX = points.reduce((s, p) => s + p.x, 0);
+      const sumY = points.reduce((s, p) => s + p.y, 0);
+      const sumXY = points.reduce((s, p) => s + p.x * p.y, 0);
+      const sumX2 = points.reduce((s, p) => s + p.x * p.x, 0);
+      
+      const m = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+      const b = (sumY - m * sumX) / n;
+      
+      // Calculate R-squared
+      const yMean = sumY / n;
+      const ssTot = points.reduce((sum, p) => sum + Math.pow(p.y - yMean, 2), 0);
+      const ssRes = points.reduce((sum, p) => sum + Math.pow(p.y - (m * p.x + b), 2), 0);
+      const r2 = 1 - (ssRes / ssTot);
+      
+      // Calculate MSE
+      const mse = ssRes / n;
+      
+      return {m, b, r2, mse};
+    }
+    
+    // Draw the regression visualization
+    function drawRegression() {
+      const canvas = document.getElementById("regressionCanvas");
+      const ctx = canvas.getContext("2d");
+      
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Get settings
+      const showGrid = document.getElementById('show-grid').checked;
+      const showResiduals = document.getElementById('show-residuals').checked;
+      const showPrediction = document.getElementById('show-prediction').checked;
+      
+      // Calculate regression parameters
+      const {m, b, r2, mse} = linearRegression(data);
+      
+      // Update equation and metrics
+      document.getElementById("equation").innerHTML = 
+        `<strong>Best Fit Line:</strong> y = ${m.toFixed(4)}x + ${b.toFixed(4)}`;
+      document.getElementById("slope-value").textContent = m.toFixed(6);
+      document.getElementById("intercept-value").textContent = b.toFixed(6);
+      document.getElementById("r2-value").textContent = r2.toFixed(6);
+      document.getElementById("mse-value").textContent = mse.toFixed(6);
+      
+      // Scaling with padding
+      const padding = 50;
+      const maxX = Math.max(...data.map(p => p.x)) + 1;
+      const maxY = Math.max(...data.map(p => p.y)) + 1;
+      const scaleX = (canvas.width - 2 * padding) / maxX;
+      const scaleY = (canvas.height - 2 * padding) / maxY;
+      
+      // Draw grid
+      if (showGrid) {
+        ctx.strokeStyle = '#e5e7eb';
+        ctx.lineWidth = 1;
+        
+        // Vertical grid lines
+        for (let i = 0; i <= maxX; i++) {
+          ctx.beginPath();
+          ctx.moveTo(padding + i * scaleX, padding);
+          ctx.lineTo(padding + i * scaleX, canvas.height - padding);
+          ctx.stroke();
+          
+          // Labels
+          if (i % 1 === 0) {
+            ctx.fillStyle = '#6b7280';
+            ctx.font = '12px Arial';
+            ctx.fillText(i.toString(), padding + i * scaleX - 5, canvas.height - padding + 20);
+          }
+        }
+        
+        // Horizontal grid lines
+        for (let i = 0; i <= maxY; i++) {
+          ctx.beginPath();
+          ctx.moveTo(padding, canvas.height - padding - i * scaleY);
+          ctx.lineTo(canvas.width - padding, canvas.height - padding - i * scaleY);
+          ctx.stroke();
+          
+          // Labels
+          if (i % 1 === 0) {
+            ctx.fillStyle = '#6b7280';
+            ctx.font = '12px Arial';
+            ctx.fillText(i.toString(), padding - 25, canvas.height - padding - i * scaleY + 5);
+          }
+        }
+      }
+      
+      // Draw axes
+      ctx.strokeStyle = '#1f2937';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(padding, canvas.height - padding);
+      ctx.lineTo(canvas.width - padding, canvas.height - padding);
+      ctx.moveTo(padding, canvas.height - padding);
+      ctx.lineTo(padding, padding);
+      ctx.stroke();
+      
+      // Axis labels
+      ctx.fillStyle = '#1f2937';
+      ctx.font = '14px Arial';
+      ctx.fillText('Study Hours (X)', canvas.width / 2, canvas.height - 10);
+      ctx.save();
+      ctx.translate(15, canvas.height / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText('Test Score (Y)', 0, 0);
+      ctx.restore();
+      
+      // Plot points
+      data.forEach((p, index) => {
+        const x = padding + p.x * scaleX;
+        const y = canvas.height - padding - p.y * scaleY;
+        
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, 2 * Math.PI);
+        ctx.fillStyle = '#4f46e5';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Add index label
+        ctx.fillStyle = '#1f2937';
+        ctx.font = '12px Arial';
+        ctx.fillText((index + 1).toString(), x + 8, y - 8);
+        
+        // Draw residuals (vertical lines to regression line)
+        if (showResiduals && showPrediction) {
+          const predictedY = m * p.x + b;
+          const yPred = canvas.height - padding - predictedY * scaleY;
+          
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x, yPred);
+          ctx.strokeStyle = 'rgba(239, 68, 68, 0.7)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          
+          // Dashed line for residual
+          ctx.setLineDash([5, 5]);
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(x, yPred);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+      });
+      
+      // Plot regression line
+      if (showPrediction) {
+        ctx.beginPath();
+        const x1 = 0;
+        const y1 = m * x1 + b;
+        const x2 = maxX;
+        const y2 = m * x2 + b;
+        
+        ctx.moveTo(padding + x1 * scaleX, canvas.height - padding - y1 * scaleY);
+        ctx.lineTo(padding + x2 * scaleX, canvas.height - padding - y2 * scaleY);
+        ctx.strokeStyle = '#059669';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        
+        // Add arrowhead
+        const endX = padding + x2 * scaleX;
+        const endY = canvas.height - padding - y2 * scaleY;
+        const angle = Math.atan2(-(y2 - y1) * scaleY, (x2 - x1) * scaleX);
+        
+        ctx.beginPath();
+        ctx.moveTo(endX, endY);
+        ctx.lineTo(endX - 10 * Math.cos(angle - Math.PI/6), endY - 10 * Math.sin(angle - Math.PI/6));
+        ctx.lineTo(endX - 10 * Math.cos(angle + Math.PI/6), endY - 10 * Math.sin(angle + Math.PI/6));
+        ctx.closePath();
+        ctx.fillStyle = '#059669';
+        ctx.fill();
+      }
+      
+      // Add title
+      ctx.fillStyle = '#1f2937';
+      ctx.font = '16px Arial';
+      ctx.fillText('Linear Regression: Study Hours vs Test Scores', padding, 25);
+      
+      // Add legend
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(canvas.width - 180, padding, 160, 100);
+      ctx.strokeStyle = '#e5e7eb';
+      ctx.strokeRect(canvas.width - 180, padding, 160, 100);
+      
+      // Legend items
+      ctx.fillStyle = '#4f46e5';
+      ctx.fillRect(canvas.width - 170, padding + 20, 15, 15);
+      ctx.fillStyle = '#1f2937';
+      ctx.font = '12px Arial';
+      ctx.fillText('Data Points', canvas.width - 150, padding + 32);
+      
+      if (showPrediction) {
+        ctx.strokeStyle = '#059669';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(canvas.width - 170, padding + 55);
+        ctx.lineTo(canvas.width - 155, padding + 55);
+        ctx.stroke();
+        ctx.fillStyle = '#1f2937';
+        ctx.fillText('Regression Line', canvas.width - 150, padding + 58);
+      }
+      
+      if (showResiduals && showPrediction) {
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.7)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(canvas.width - 170, padding + 80);
+        ctx.lineTo(canvas.width - 155, padding + 80);
+        ctx.stroke();
+        ctx.fillStyle = '#1f2937';
+        ctx.fillText('Residuals', canvas.width - 150, padding + 83);
+      }
+      
+      // Setup mouse events for dragging points
+      canvas.addEventListener('mousedown', handleMouseDown);
+      canvas.addEventListener('mousemove', handleMouseMove);
+      canvas.addEventListener('mouseup', handleMouseUp);
+    }
+    
+    function handleMouseDown(e) {
+      const canvas = document.getElementById("regressionCanvas");
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      // Scaling
+      const padding = 50;
+      const maxX = Math.max(...data.map(p => p.x)) + 1;
+      const maxY = Math.max(...data.map(p => p.y)) + 1;
+      const scaleX = (canvas.width - 2 * padding) / maxX;
+      const scaleY = (canvas.height - 2 * padding) / maxY;
+      
+      // Find if mouse is over a point
+      for (let i = 0; i < data.length; i++) {
+        const pointX = padding + data[i].x * scaleX;
+        const pointY = canvas.height - padding - data[i].y * scaleY;
+        
+        const distance = Math.sqrt(Math.pow(x - pointX, 2) + Math.pow(y - pointY, 2));
+        if (distance < 15) { // 15px tolerance
+          draggedPoint = i;
+          break;
+        }
+      }
+    }
+    
+    function handleMouseMove(e) {
+      if (draggedPoint === null) return;
+      
+      const canvas = document.getElementById("regressionCanvas");
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      // Scaling
+      const padding = 50;
+      const maxX = Math.max(...data.map(p => p.x)) + 1;
+      const maxY = Math.max(...data.map(p => p.y)) + 1;
+      const scaleX = (canvas.width - 2 * padding) / maxX;
+      const scaleY = (canvas.height - 2 * padding) / maxY;
+      
+      // Convert canvas coordinates back to data coordinates
+      const dataX = Math.max(0, (x - padding) / scaleX);
+      const dataY = Math.max(0, Math.min(100, (canvas.height - padding - y) / scaleY));
+      
+      // Update data point
+      data[draggedPoint].x = parseFloat(dataX.toFixed(2));
+      data[draggedPoint].y = parseFloat(dataY.toFixed(2));
+      
+      // Redraw
+      updateDatasetTable();
+      drawRegression();
+    }
+    
+    function handleMouseUp() {
+      draggedPoint = null;
+    }
+    
+    function animateRegression() {
+      let frame = 0;
+      const totalFrames = 60;
+      
+      function animate() {
+        frame++;
+        if (frame > totalFrames || !isAnimating) {
+          isAnimating = false;
+          document.getElementById('animate-regression').innerHTML = '<i class="fas fa-play"></i> Animate Regression';
+          return;
+        }
+        
+        // Create a subset of data based on current frame
+        const subsetSize = Math.ceil(data.length * frame / totalFrames);
+        const subset = data.slice(0, subsetSize);
+        
+        // Calculate regression for subset
+        const {m, b} = linearRegression(subset);
+        
+        // Update equation
+        document.getElementById("equation").innerHTML = 
+          `<strong>Best Fit Line (Frame ${frame}/${totalFrames}):</strong> y = ${m.toFixed(4)}x + ${b.toFixed(4)}`;
+        
+        // Redraw with subset
+        redrawWithSubset(subset, m, b);
+        
+        animationFrameId = requestAnimationFrame(animate);
+      }
+      
+      animate();
+    }
+    
+    function redrawWithSubset(subset, m, b) {
+      const canvas = document.getElementById("regressionCanvas");
+      const ctx = canvas.getContext("2d");
+      
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Get settings
+      const showGrid = document.getElementById('show-grid').checked;
+      const showResiduals = document.getElementById('show-residuals').checked;
+      const showPrediction = document.getElementById('show-prediction').checked;
+      
+      // Scaling with padding
+      const padding = 50;
+      const maxX = Math.max(...data.map(p => p.x)) + 1;
+      const maxY = Math.max(...data.map(p => p.y)) + 1;
+      const scaleX = (canvas.width - 2 * padding) / maxX;
+      const scaleY = (canvas.height - 2 * padding) / maxY;
+      
+      // Draw grid
+      if (showGrid) {
+        ctx.strokeStyle = '#e5e7eb';
+        ctx.lineWidth = 1;
+        
+        // Vertical grid lines
+        for (let i = 0; i <= maxX; i++) {
+          ctx.beginPath();
+          ctx.moveTo(padding + i * scaleX, padding);
+          ctx.lineTo(padding + i * scaleX, canvas.height - padding);
+          ctx.stroke();
+        }
+        
+        // Horizontal grid lines
+        for (let i = 0; i <= maxY; i++) {
+          ctx.beginPath();
+          ctx.moveTo(padding, canvas.height - padding - i * scaleY);
+          ctx.lineTo(canvas.width - padding, canvas.height - padding - i * scaleY);
+          ctx.stroke();
+        }
+      }
+      
+      // Draw axes
+      ctx.strokeStyle = '#1f2937';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(padding, canvas.height - padding);
+      ctx.lineTo(canvas.width - padding, canvas.height - padding);
+      ctx.moveTo(padding, canvas.height - padding);
+      ctx.lineTo(padding, padding);
+      ctx.stroke();
+      
+      // Axis labels
+      ctx.fillStyle = '#1f2937';
+      ctx.font = '14px Arial';
+      ctx.fillText('Study Hours (X)', canvas.width / 2, canvas.height - 10);
+      ctx.save();
+      ctx.translate(15, canvas.height / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText('Test Score (Y)', 0, 0);
+      ctx.restore();
+      
+      // Plot all points (full dataset)
+      data.forEach((p, index) => {
+        const x = padding + p.x * scaleX;
+        const y = canvas.height - padding - p.y * scaleY;
+        
+        // Different color/style for points in subset vs not in subset
+        if (index < subset.length) {
+          ctx.beginPath();
+          ctx.arc(x, y, 6, 0, 2 * Math.PI);
+          ctx.fillStyle = '#4f46e5';
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        } else {
+          ctx.beginPath();
+          ctx.arc(x, y, 6, 0, 2 * Math.PI);
+          ctx.fillStyle = 'rgba(79, 70, 229, 0.3)';
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+        
+        // Add index label
+        ctx.fillStyle = '#1f2937';
+        ctx.font = '12px Arial';
+        ctx.fillText((index + 1).toString(), x + 8, y - 8);
+      });
+      
+      // Plot regression line
+      if (showPrediction) {
+        ctx.beginPath();
+        const x1 = 0;
+        const y1 = m * x1 + b;
+        const x2 = maxX;
+        const y2 = m * x2 + b;
+        
+        ctx.moveTo(padding + x1 * scaleX, canvas.height - padding - y1 * scaleY);
+        ctx.lineTo(padding + x2 * scaleX, canvas.height - padding - y2 * scaleY);
+        ctx.strokeStyle = '#059669';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      }
+      
+      // Add title
+      ctx.fillStyle = '#1f2937';
+      ctx.font = '16px Arial';
+      ctx.fillText('Linear Regression Animation', padding, 25);
+    }
+  </script>
+</body>
+</html>
