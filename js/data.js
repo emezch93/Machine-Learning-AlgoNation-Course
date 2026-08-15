@@ -396,8 +396,39 @@ const COURSE = {
         {
           "id": "m5-l1",
           "title": "Linear Regression",
-          "concept": "Linear Regression is a supervised algorithm that fits a straight line, y = mx + b, to predict a continuous output from input features. It finds the line that minimizes the sum of squared differences between predicted and actual values, a method called least squares.",
+          "concept": [
+            "Linear Regression is a supervised algorithm that fits a straight line, y = mx + b, to predict a continuous output from an input feature. It belongs to the family of supervised learning algorithms: both the input (X) and the output (Y) are known during training, and the algorithm finds the mathematical relationship between them.",
+            "The model is fit using least squares: it finds the m and b that minimize the sum of squared vertical distances between the actual data points and the line. This error measure is called the cost function, written J(m, b). R2 score, ranging from 0 to 1, measures how well the fitted line explains the variation in the data."
+          ],
           "example": "Predicting a student's test score from study hours. The model learns a slope (m) and intercept (b) from historical study hours and scores, then applies y = mx + b to new study-hour values.",
+          "notes": [
+            {
+              "heading": "Real-World Applications",
+              "items": [
+                "Business: sales forecasting, price elasticity, credit risk assessment",
+                "Healthcare and science: drug dosage calculation, disease progression modeling, verifying relationships in experimental data",
+                "Education and social sciences: predicting student performance, studying how income affects outcomes"
+              ]
+            },
+            {
+              "heading": "Limitations",
+              "items": [
+                "Assumes a linear relationship between variables, which does not always hold",
+                "Sensitive to outliers, since a few extreme values can shift the line significantly",
+                "Becomes unstable when input features are highly correlated with each other",
+                "Assumes constant error variance and normally distributed residuals for statistical inference"
+              ]
+            },
+            {
+              "heading": "When to Use It",
+              "items": [
+                "The outcome you are predicting is a continuous number",
+                "You expect a roughly linear relationship between the inputs and the output",
+                "You need an interpretable model that explains how each feature affects the prediction",
+                "The dataset is not too large for an exact analytical solution"
+              ]
+            }
+          ],
           "code": {
             "python": "import pandas as pd\nimport numpy as np\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn.metrics import mean_squared_error, r2_score\n\n# Generate a dataset with a positive relationship\nnp.random.seed(42)\ndf = pd.DataFrame({\n    'study_hours': np.random.uniform(1, 10, 100)\n})\ndf['test_scores'] = 20 + 7.5 * df['study_hours'] + np.random.normal(0, 10, 100)\n\nprint(\"Dataset shape:\", df.shape)\nprint(df.describe())\n\n# Split into features and label\nX = df[['study_hours']]\ny = df['test_scores']\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)\n\n# Train the model\nmodel = LinearRegression()\nmodel.fit(X_train, y_train)\n\n# Predict and evaluate\ny_pred = model.predict(X_test)\nprint(\"Slope:\", model.coef_[0])\nprint(\"Intercept:\", model.intercept_)\nprint(\"R2 score:\", r2_score(y_test, y_pred))\nprint(\"Mean Squared Error:\", mean_squared_error(y_test, y_pred))"
           },
@@ -407,61 +438,177 @@ const COURSE = {
             "hint": "Apply y = mx + b with m = 7.4, b = 21.0, x = 5.",
             "solution": "y = 7.4 * 5 + 21.0 = 58.0"
           },
-          "exercise": "Explain in one sentence what R2 score close to 1.0 versus close to 0.0 tells you about a Linear Regression model."
+          "exercise": "Explain in one sentence what an R2 score close to 1.0 versus close to 0.0 tells you about a Linear Regression model."
         },
         {
           "id": "m5-l2",
           "title": "Logistic Regression",
-          "concept": "Despite its name, Logistic Regression is a classification algorithm. It applies the sigmoid function to a linear combination of features, producing a probability between 0 and 1, which is then thresholded into a class label.",
+          "concept": [
+            "Despite its name, Logistic Regression is a classification algorithm, not a regression algorithm. It predicts the probability that an example belongs to a class, typically binary (0 or 1), by applying the sigmoid function to a linear combination of features: sigma(z), where z = w0 + w1*x1 + w2*x2 + ... + wn*xn. The sigmoid output is always between 0 and 1.",
+            "Training does not use least squares. Instead it uses maximum likelihood estimation: the weights are adjusted, through gradient ascent, to maximize the likelihood of the observed training labels. A probability of 0.5 is the typical threshold that separates the two predicted classes."
+          ],
           "example": "Predicting whether a student passes or fails from study hours and previous grades. The model outputs a probability of passing; a probability of 0.5 or above is typically classified as pass.",
+          "notes": [
+            {
+              "heading": "Real-World Applications",
+              "items": [
+                "Healthcare: disease diagnosis, patient risk stratification, readmission prediction",
+                "Business and finance: credit scoring, customer churn, fraud detection",
+                "Technology: spam detection, sentiment analysis, click-through rate prediction"
+              ]
+            },
+            {
+              "heading": "Limitations",
+              "items": [
+                "Can only learn a linear decision boundary in the feature space",
+                "Performance depends heavily on feature engineering and selection",
+                "Highly correlated features make the learned weights unstable and hard to interpret",
+                "Performance suffers when one class is much more frequent than the other"
+              ]
+            },
+            {
+              "heading": "When to Use It",
+              "items": [
+                "The problem is binary classification",
+                "You want a probability, not just a class label",
+                "Interpretability matters and you need to explain how features affect the prediction",
+                "The dataset is moderate in size and you want a fast, simple algorithm"
+              ]
+            }
+          ],
           "code": {
             "python": "#  Logistic Regression - Complete Implementation (Run All at Once)\n\nimport numpy as np\nimport pandas as pd\nimport matplotlib.pyplot as plt\nimport seaborn as sns\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.metrics import accuracy_score, classification_report, confusion_matrix, roc_auc_score, roc_curve\n\nclass LogisticRegression:\n    def __init__(self, learning_rate=0.01, n_iterations=1000):\n        self.learning_rate = learning_rate\n        self.n_iterations = n_iterations\n        self.weights = None\n        self.bias = None\n        self.cost_history = []\n    \n    def sigmoid(self, z):\n        # Clip z to prevent overflow\n        z = np.clip(z, -500, 500)\n        return 1 / (1 + np.exp(-z))\n    \n    def fit(self, X, y):\n        n_samples, n_features = X.shape\n        # Initialize parameters\n        self.weights = np.zeros(n_features)\n        self.bias = 0\n        \n        # Gradient descent\n        for i in range(self.n_iterations):\n            # Linear model\n            linear_model = np.dot(X, self.weights) + self.bias\n            # Apply sigmoid\n            y_pred = self.sigmoid(linear_model)\n            \n            # Compute cost (log loss)\n            cost = - (1/n_samples) * np.sum(y * np.log(y_pred + 1e-15) + (1 - y) * np.log(1 - y_pred + 1e-15))\n            self.cost_history.append(cost)\n            \n            # Compute gradients\n            dw = (1/n_samples) * np.dot(X.T, (y_pred - y))\n            db = (1/n_samples) * np.sum(y_pred - y)\n            \n            # Update parameters\n            self.weights -= self.learning_rate * dw\n            self.bias -= self.learning_rate * db\n            \n            if i % 200 == 0:\n                print(f\"Iteration {i}: Cost = {cost:.6f}\")\n    \n    def predict_proba(self, X):\n        linear_model = np.dot(X, self.weights) + self.bias\n        return self.sigmoid(linear_model)\n    \n    def predict(self, X, threshold=0.5):\n        probabilities = self.predict_proba(X)\n        return (probabilities >= threshold).astype(int)\n    \n    def get_params(self):\n        return self.weights, self.bias\n\n#  Generate sample student dataset: Predict if student passes (1) or fails (0)\nnp.random.seed(42)\nn_samples = 300\n\n# Features: study_hours, previous_grade\nstudy_hours = np.random.uniform(1, 12, n_samples)\nprevious_grade = np.random.uniform(40, 100, n_samples)\n\n# Create target: higher study hours + grades = higher chance of passing\nz = study_hours * 0.5 + previous_grade * 0.05 - 6  # Decision boundary\nprob = 1 / (1 + np.exp(-z))  # Sigmoid\nnoise = np.random.normal(0, 0.2, n_samples)\nprob = np.clip(prob + noise, 0, 1)\nexam_result = (np.random.random(n_samples) < prob).astype(int)\n\n# Create DataFrame\ndf = pd.DataFrame({\n    'study_hours': study_hours,\n    'previous_grade': previous_grade,\n    'exam_result': exam_result\n})\n\nprint(\" Dataset Overview:\")\nprint(f\"Shape: {df.shape}\")\nprint(f\"Pass rate: {df['exam_result'].mean():.2%}\")\nprint(\"\\nFirst 5 rows:\")\nprint(df.head())\n\n#  Prepare data\nX = df[['study_hours', 'previous_grade']].values\ny = df['exam_result'].values\n\n# Split and scale\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42, stratify=y)\nscaler = StandardScaler()\nX_train_scaled = scaler.fit_transform(X_train)\nX_test_scaled = scaler.transform(X_test)\n\n#  Train model\nmodel = LogisticRegression(learning_rate=0.1, n_iterations=1000)\nmodel.fit(X_train_scaled, y_train)\n\n#  Get parameters\nweights, bias = model.get_params()\nprint(f\"\\n Final Model Parameters:\")\nprint(f\"Intercept (bias): {bias:.4f}\")\nprint(f\"Weight for Study Hours: {weights[0]:.4f}\")\nprint(f\"Weight for Previous Grade: {weights[1]:.4f}\")\n\n#  Make predictions\ny_train_pred = model.predict(X_train_scaled)\ny_test_pred = model.predict(X_test_scaled)\ny_test_proba = model.predict_proba(X_test_scaled)\n\n#  Evaluate model\ntrain_acc = accuracy_score(y_train, y_train_pred)\ntest_acc = accuracy_score(y_test, y_test_pred)\nroc_auc = roc_auc_score(y_test, y_test_proba)\n\nprint(f\"\\n Model Performance:\")\nprint(f\"Training Accuracy: {train_acc:.4f}\")\nprint(f\"Testing Accuracy: {test_acc:.4f}\")\nprint(f\"ROC AUC Score: {roc_auc:.4f}\")\nprint(f\"\\n Classification Report (Test Set):\")\nprint(classification_report(y_test, y_test_pred, target_names=['Fail', 'Pass']))\n\n# ️ Visualize results\nfig, axes = plt.subplots(2, 2, figsize=(15, 12))\n\n# 1. Cost function over iterations\naxes[0, 0].plot(model.cost_history, color='#7c3aed')\naxes[0, 0].set_title('Cost Function Over Iterations')\naxes[0, 0].set_xlabel('Iterations')\naxes[0, 0].set_ylabel('Log Loss')\naxes[0, 0].grid(True, alpha=0.3)\n\n# 2. Decision boundary\naxes[0, 1].scatter(df[df['exam_result'] == 0]['study_hours'], \n                   df[df['exam_result'] == 0]['previous_grade'], \n                   alpha=0.6, label='Fail', color='#ef4444')\naxes[0, 1].scatter(df[df['exam_result'] == 1]['study_hours'], \n                   df[df['exam_result'] == 1]['previous_grade'], \n                   alpha=0.6, label='Pass', color='#10b981')\naxes[0, 1].set_title('Decision Boundary')\naxes[0, 1].set_xlabel('Study Hours')\naxes[0, 1].set_ylabel('Previous Grade')\naxes[0, 1].legend()\naxes[0, 1].grid(True, alpha=0.3)\n\n# 3. ROC Curve\nfpr, tpr, _ = roc_curve(y_test, y_test_proba)\naxes[1, 0].plot(fpr, tpr, color='#059669', label=f'ROC Curve (AUC = {roc_auc:.4f})')\naxes[1, 0].plot([0, 1], [0, 1], 'k--', label='Random')\naxes[1, 0].set_title('ROC Curve')\naxes[1, 0].set_xlabel('False Positive Rate')\naxes[1, 0].set_ylabel('True Positive Rate')\naxes[1, 0].legend()\naxes[1, 0].grid(True, alpha=0.3)\n\n# 4. Confusion Matrix\ncm = confusion_matrix(y_test, y_test_pred)\nsns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=axes[1, 1])\naxes[1, 1].set_title('Confusion Matrix')\naxes[1, 1].set_xlabel('Predicted')\naxes[1, 1].set_ylabel('Actual')\n\nplt.tight_layout()\nplt.show()\n\n#  Make predictions for new students\nnew_students = np.array([[3.5, 65], [5.0, 75], [7.5, 85], [2.0, 55]])\nnew_students_scaled = scaler.transform(new_students)\nnew_predictions = model.predict(new_students_scaled)\nnew_probabilities = model.predict_proba(new_students_scaled)\n\nprint(f\"\\n Predictions for New Students:\")\nfor i, (hours, grade) in enumerate(new_students):\n    result = \"PASS\" if new_predictions[i] == 1 else \"FAIL\"\n    prob = new_probabilities[i]\n    print(f\"Student {i+1}: {hours}h, {grade}%  {result} (Probability: {prob:.4f})\")\n\nprint(f\"\\n Logistic Regression Complete! Model is trained and ready for predictions.\")"
           },
           "runNote": "Install with: pip install pandas numpy scikit-learn",
           "practice": {
-            "task": "A model outputs a probability of 0.38 for a positive class, using the standard 0.5 threshold. What class is predicted?",
+            "task": "A model outputs a probability of 0.38 for the positive class, using the standard 0.5 threshold. What class is predicted?",
             "hint": "Compare the probability to the threshold.",
             "solution": "0.38 is below 0.5, so the model predicts the negative class (0)."
           },
-          "exercise": "Explain why Logistic Regression's output is more useful than a plain yes/no answer in situations like credit approval."
+          "exercise": "Explain why Logistic Regression's probability output is more useful than a plain yes/no answer in a situation like loan approval."
         },
         {
           "id": "m5-l3",
           "title": "K Nearest Neighbors",
-          "concept": "K Nearest Neighbors (KNN) classifies a new point by finding the K closest points in the training data, typically using Euclidean distance, and taking a majority vote among them. It does not build a model during training; it stores the data and compares at prediction time.",
-          "example": "To classify a new transaction as fraud or not, KNN finds the K most similar past transactions by feature distance and predicts the majority label among them.",
+          "concept": [
+            "K Nearest Neighbors (KNN) is a non-parametric, instance-based algorithm used for both classification and regression. It is a 'lazy learner': it does not build a model during training. Instead it memorizes the entire training set and makes predictions by comparing a new point to the stored examples at prediction time.",
+            "For a new point, KNN computes the distance (typically Euclidean distance) to every training point, finds the K closest ones, and predicts by majority vote among them for classification, or by averaging their values for regression. A small K (such as K=1) gives low bias but high variance, meaning it fits noise easily. A large K gives high bias but low variance, meaning it can miss real local patterns."
+          ],
+          "example": "To classify a new credit card transaction as fraud or not, KNN finds the K most similar past transactions by feature distance and predicts the majority label among them.",
+          "notes": [
+            {
+              "heading": "Other Distance Metrics",
+              "items": [
+                "Manhattan distance: sum of the absolute differences between coordinates",
+                "Minkowski distance: a generalized distance that includes Euclidean and Manhattan as special cases",
+                "Cosine similarity: measures the angle between two feature vectors rather than straight-line distance"
+              ]
+            },
+            {
+              "heading": "When to Use It",
+              "items": [
+                "The dataset is small to medium in size",
+                "Interpretability of individual predictions (which neighbors drove the result) matters",
+                "The decision boundary between classes is irregular, not a simple line or curve",
+                "You need a simple baseline model with no training step"
+              ]
+            }
+          ],
           "code": {
             "python": "# K Nearest Neighbors Implementation for Credit Card Fraud Detection\nimport numpy as np\nimport pandas as pd\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.neighbors import KNeighborsClassifier\nfrom sklearn.metrics import classification_report, confusion_matrix, accuracy_score\nimport matplotlib.pyplot as plt\nimport seaborn as sns\n\n# Load the dataset (assuming you have a CSV file)\n# For this example, we'll create a sample dataset similar to the one in the lesson\nnp.random.seed(42)\n\n# Create sample data\nn_samples = 1000\nlegitimate_samples = int(n_samples * 0.98)  # 98% legitimate\nfraud_samples = n_samples - legitimate_samples  # 2% fraud\n\n# Generate legitimate transactions\nlegit_amount = np.random.uniform(10, 1000, legitimate_samples)\nlegit_v1 = np.random.normal(-1, 2, legitimate_samples)\nlegit_v2 = np.random.normal(2, 1.5, legitimate_samples)\nlegit_v3 = np.random.normal(0.5, 1, legitimate_samples)\nlegit_v4 = np.random.normal(-2, 1.8, legitimate_samples)\nlegit_fraud = np.zeros(legitimate_samples)\n\n# Generate fraudulent transactions\nfraud_amount = np.random.uniform(500, 5000, fraud_samples)\nfraud_v1 = np.random.normal(3, 1.5, fraud_samples)\nfraud_v2 = np.random.normal(-3.5, 2, fraud_samples)\nfraud_v3 = np.random.normal(2, 1.2, fraud_samples)\nfraud_v4 = np.random.normal(-2.5, 1.5, fraud_samples)\nfraud_fraud = np.ones(fraud_samples)\n\n# Combine datasets\namount = np.concatenate([legit_amount, fraud_amount])\nv1 = np.concatenate([legit_v1, fraud_v1])\nv2 = np.concatenate([legit_v2, fraud_v2])\nv3 = np.concatenate([legit_v3, fraud_v3])\nv4 = np.concatenate([legit_v4, fraud_v4])\nfraud = np.concatenate([legit_fraud, fraud_fraud])\n\n# Create DataFrame\ndf = pd.DataFrame({\n    'Amount': amount,\n    'V1': v1,\n    'V2': v2,\n    'V3': v3,\n    'V4': v4,\n    'Fraud': fraud\n})\n\nprint(\"Dataset shape:\", df.shape)\nprint(\"Fraud distribution:\")\nprint(df['Fraud'].value_counts())\n\n# Prepare features and target\nX = df[['Amount', 'V1', 'V2', 'V3', 'V4']]\ny = df['Fraud']\n\n# Split the dataset\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.2, random_state=42, stratify=y\n)\n\n# Feature scaling (important for KNN)\nscaler = StandardScaler()\nX_train_scaled = scaler.fit_transform(X_train)\nX_test_scaled = scaler.transform(X_test)\n\n# Find optimal K using cross-validation\nfrom sklearn.model_selection import cross_val_score\n\nk_values = range(1, 21)\ncv_scores = []\n\nfor k in k_values:\n    knn = KNeighborsClassifier(n_neighbors=k)\n    scores = cross_val_score(knn, X_train_scaled, y_train, cv=5, scoring='accuracy')\n    cv_scores.append(scores.mean())\n\n# Find best K\noptimal_k = k_values[np.argmax(cv_scores)]\nprint(f\"Optimal K: {optimal_k}\")\n\n# Train the model with optimal K\nknn_model = KNeighborsClassifier(n_neighbors=optimal_k)\nknn_model.fit(X_train_scaled, y_train)\n\n# Make predictions\ny_pred = knn_model.predict(X_test_scaled)\n\n# Evaluate the model\nprint(\"\\nModel Performance:\")\nprint(f\"Accuracy: {accuracy_score(y_test, y_pred):.4f}\")\nprint(\"\\nClassification Report:\")\nprint(classification_report(y_test, y_pred))\n\n# Confusion Matrix\nplt.figure(figsize=(8, 6))\ncm = confusion_matrix(y_test, y_pred)\nsns.heatmap(cm, annot=True, fmt='d', cmap='Blues')\nplt.title('Confusion Matrix - KNN Fraud Detection')\nplt.ylabel('Actual')\nplt.xlabel('Predicted')\nplt.show()\n\n# Function to predict new transactions\ndef predict_fraud(amount, v1, v2, v3, v4, model, scaler):\n    \"\"\"\n    Predict if a transaction is fraudulent\n    \"\"\"\n    # Create feature array\n    features = np.array([[amount, v1, v2, v3, v4]])\n    \n    # Scale features\n    features_scaled = scaler.transform(features)\n    \n    # Make prediction\n    prediction = model.predict(features_scaled)[0]\n    probability = model.predict_proba(features_scaled)[0]\n    \n    return prediction, probability\n\n# Example prediction\nexample_amount = 1500.0\nexample_v1 = 2.8\nexample_v2 = -3.2\nexample_v3 = 1.9\nexample_v4 = -2.1\n\npred, prob = predict_fraud(\n    example_amount, example_v1, example_v2, example_v3, example_v4,\n    knn_model, scaler\n)\n\nprint(f\"\\nExample Prediction:\")\nprint(f\"Transaction: Amount=${example_amount}, V1={example_v1}, V2={example_v2}, V3={example_v3}, V4={example_v4}\")\nprint(f\"Prediction: {'Fraudulent' if pred == 1 else 'Legitimate'}\")\nprint(f\"Probability: Legitimate={prob[0]:.3f}, Fraudulent={prob[1]:.3f}\")\n\n# Find nearest neighbors for a specific transaction\ndef find_nearest_neighbors(amount, v1, v2, v3, v4, model, scaler, k=5):\n    \"\"\"\n    Find the k nearest neighbors for a given transaction\n    \"\"\"\n    features = np.array([[amount, v1, v2, v3, v4]])\n    features_scaled = scaler.transform(features)\n    \n    # Get distances and indices of neighbors\n    distances, indices = model.kneighbors(features_scaled, n_neighbors=k)\n    \n    return distances[0], indices[0]\n\n# Example: Find nearest neighbors\ndistances, indices = find_nearest_neighbors(\n    example_amount, example_v1, example_v2, example_v3, example_v4,\n    knn_model, scaler, k=5\n)\n\nprint(f\"\\nNearest Neighbors (K=5):\")\nfor i, (dist, idx) in enumerate(zip(distances, indices)):\n    neighbor_fraud = y_train.iloc[idx]\n    print(f\"Neighbor {i+1}: Distance={dist:.4f}, Fraud={neighbor_fraud}\")"
           },
           "runNote": "Install with: pip install pandas numpy scikit-learn",
           "practice": {
-            "task": "With K=5 and 4 of the 5 nearest neighbors labeled \"fraud\", what does KNN predict?",
+            "task": "With K=5 and 4 of the 5 nearest neighbors labeled fraud, what does KNN predict?",
             "hint": "KNN predicts the majority label among the K neighbors.",
-            "solution": "It predicts \"fraud\", since 4 out of 5 neighbors (the majority) are labeled fraud."
+            "solution": "It predicts fraud, since 4 out of 5 neighbors (the majority) are labeled fraud."
           },
-          "exercise": "Explain why choosing a very small K (like 1) makes a model more sensitive to noise in the data."
+          "exercise": "Explain why choosing K=1 makes a model more sensitive to noise in the data than choosing a larger K."
         },
         {
           "id": "m5-l4",
           "title": "Decision Trees",
-          "concept": "A Decision Tree splits data repeatedly based on feature values, forming a tree of yes/no questions that ends in a prediction. Splits are chosen to create the most homogeneous subsets possible, measured with Gini impurity or entropy.",
+          "concept": [
+            "A Decision Tree splits data repeatedly based on feature values, forming a tree of yes/no questions that ends in a prediction. Each internal node tests one feature, each branch is the outcome of that test, and each leaf holds a prediction. The path from root to leaf reads as a set of explainable rules.",
+            "At each node, the algorithm chooses the feature and threshold that produce the purest possible subsets, measured with Gini impurity (0 for a perfectly pure subset, up to 0.5 for maximum impurity in binary classification) or entropy and information gain. The tree stops growing once a stopping condition is met: maximum depth, a minimum number of samples per node, or no further split that meaningfully reduces impurity."
+          ],
           "example": "A tree predicting pass or fail might first split on attendance, then split each branch further on study hours, until each leaf node gives a final pass or fail prediction.",
+          "notes": [
+            {
+              "heading": "Real-World Applications",
+              "items": [
+                "Healthcare: diagnosis support, treatment selection, patient risk assessment",
+                "Business and finance: credit risk assessment, customer segmentation, churn prediction",
+                "Manufacturing: defect prediction, maintenance scheduling, process optimization"
+              ]
+            },
+            {
+              "heading": "Limitations",
+              "items": [
+                "Prone to overfitting when allowed to grow without a depth limit",
+                "Unstable: small changes in the training data can produce a very different tree",
+                "Uses a greedy algorithm, so each split is locally optimal but not guaranteed globally optimal",
+                "Struggles with problems that require complex feature interactions"
+              ]
+            },
+            {
+              "heading": "When to Use It",
+              "items": [
+                "You need a model that is easy to explain to non-technical stakeholders",
+                "The dataset mixes numerical and categorical features",
+                "You want to see which features and thresholds actually drive the prediction",
+                "You want a fast baseline before trying an ensemble method"
+              ]
+            }
+          ],
           "code": {
             "python": "#decision_tree_classification.py\nimport pandas as pd\nimport numpy as np\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.tree import DecisionTreeClassifier, export_text, plot_tree\nfrom sklearn.metrics import accuracy_score, classification_report, confusion_matrix\nimport matplotlib.pyplot as plt\nimport seaborn as sns\nimport joblib\n\n# ===============================\n# 1. Create Sample Dataset\n# ===============================\ndata = {\n    \"Study Hours\": [2, 3, 4, 5, 6, 7, 8, 9, 10, 3, 4, 5, 6, 2, 7, 8],\n    \"Previous Grade\": [40, 50, 55, 65, 70, 80, 85, 90, 95, 45, 60, 68, 72, 35, 78, 88],\n    \"Attendance\": [60, 65, 70, 75, 80, 85, 90, 92, 95, 62, 70, 78, 85, 55, 88, 93],\n    \"Result\": [0,0,0,1,1,1,1,1,1,0,0,1,1,0,1,1]  # 0 = Fail, 1 = Pass\n}\n\ndf = pd.DataFrame(data)\nprint(\"Sample Dataset:\\n\", df.head())\n\n# ===============================\n# 2. Split into Features & Labels\n# ===============================\nX = df[[\"Study Hours\", \"Previous Grade\", \"Attendance\"]]\ny = df[\"Result\"]\n\nX_train, X_test, y_train, y_test = train_test_split(\n    X, y, test_size=0.3, random_state=42\n)\n\n# ===============================\n# 3. Train Decision Tree Model\n# ===============================\nclf = DecisionTreeClassifier(\n    criterion=\"gini\",  # or \"entropy\"\n    max_depth=4,\n    min_samples_split=2,\n    random_state=42\n)\nclf.fit(X_train, y_train)\n\n# ===============================\n# 4. Evaluate Model\n# ===============================\ny_pred = clf.predict(X_test)\n\nprint(\"\\n Model Accuracy:\", accuracy_score(y_test, y_pred))\nprint(\"\\n Classification Report:\\n\", classification_report(y_test, y_pred))\nprint(\"\\n Confusion Matrix:\\n\", confusion_matrix(y_test, y_pred))\n\n# ===============================\n# 5. Visualize Decision Tree\n# ===============================\nprint(\"\\n Tree Rules:\\n\")\nprint(export_text(clf, feature_names=list(X.columns)))\n\nplt.figure(figsize=(12,8))\nplot_tree(clf, feature_names=X.columns, class_names=[\"Fail\",\"Pass\"], filled=True)\nplt.title(\"Decision Tree Visualization\")\nplt.show()\n\n# ===============================\n# 6. Confusion Matrix Heatmap\n# ===============================\nsns.heatmap(confusion_matrix(y_test, y_pred), annot=True, cmap=\"Blues\", fmt=\"d\",\n            xticklabels=[\"Fail\",\"Pass\"], yticklabels=[\"Fail\",\"Pass\"])\nplt.title(\"Confusion Matrix Heatmap\")\nplt.show()\n\n# ===============================\n# 7. Save & Load Model\n# ===============================\njoblib.dump(clf, \"decision_tree_model.pkl\")\nprint(\"\\n Model saved as decision_tree_model.pkl\")\n\nloaded_model = joblib.load(\"decision_tree_model.pkl\")\nsample = np.array([[6, 70, 85]])  # Study Hours=6, Prev Grade=70, Attendance=85\nprint(\"\\n Prediction for sample student:\", loaded_model.predict(sample))"
           },
           "runNote": "Install with: pip install pandas numpy scikit-learn matplotlib seaborn joblib",
           "practice": {
-            "task": "Explain what it means for a split to produce a \"pure\" subset.",
+            "task": "Explain what it means for a split to produce a pure subset.",
             "hint": "Think about how many different classes are present in the resulting subset.",
             "solution": "A pure subset contains examples from only one class. A split that produces pure subsets perfectly separates the classes at that point in the tree."
           },
-          "exercise": "Explain why an unlimited-depth Decision Tree is prone to overfitting."
+          "exercise": "Explain why an unlimited-depth Decision Tree is prone to overfitting, and name one setting that controls this."
         },
         {
           "id": "m5-l5",
           "title": "Random Forest",
-          "concept": "Random Forest is an ensemble method that trains many Decision Trees, each on a random sample of the data and a random subset of features, then combines their predictions by majority vote or averaging. Combining many trees reduces the overfitting risk of any single tree.",
+          "concept": [
+            "Random Forest is an ensemble method that trains many Decision Trees and combines their predictions. Each tree is trained on a bootstrap sample, a random sample of the training data drawn with replacement, and considers only a random subset of features at each split. The forest's final prediction is a majority vote (classification) or an average (regression) across all trees.",
+            "Because each bootstrap sample leaves out roughly 37 percent of the data, that leftover 'out-of-bag' portion can be used to estimate the model's error without a separate validation set. Random Forest also reports feature importance, based on how much each feature reduces impurity across all trees in the forest."
+          ],
           "example": "Instead of one Decision Tree predicting wine quality, a Random Forest trains 100 trees on different random samples and averages their predictions for a more stable result.",
+          "notes": [
+            {
+              "heading": "Advantages",
+              "items": [
+                "Handles both numerical and categorical data",
+                "Robust to outliers and noisy data",
+                "Requires relatively little data preprocessing",
+                "Provides feature importance scores",
+                "More resistant to overfitting than a single Decision Tree"
+              ]
+            },
+            {
+              "heading": "Limitations",
+              "items": [
+                "Can be computationally expensive on very large datasets",
+                "Less interpretable than a single Decision Tree",
+                "Can still overfit noisy datasets with many irrelevant features"
+              ]
+            },
+            {
+              "heading": "Real-World Applications",
+              "items": [
+                "Healthcare: disease diagnosis, patient risk stratification",
+                "Finance: credit scoring, fraud detection",
+                "E-commerce: product recommendations, churn prediction",
+                "Environmental science: species distribution modeling"
+              ]
+            }
+          ],
           "code": {
             "python": "# Import libraries\nfrom sklearn.ensemble import RandomForestClassifier\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.metrics import accuracy_score, classification_report\nimport pandas as pd\n\n# Load dataset\ndata = pd.read_csv('winequality-red.csv')\nX = data.drop('quality', axis=1)\ny = data['quality']\n\n# Convert to binary classification (low vs high quality)\ny = (y >= 6).astype(int)\n\n# Split data\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)\n\n# Create and train model\nrf = RandomForestClassifier(\n    n_estimators=100,      # Number of trees\n    max_features='sqrt',   # Features to consider at each split\n    random_state=42\n)\nrf.fit(X_train, y_train)\n\n# Make predictions\ny_pred = rf.predict(X_test)\n\n# Evaluate model\naccuracy = accuracy_score(y_test, y_pred)\nprint(f\"Accuracy: {accuracy:.2f}\")\nprint(classification_report(y_test, y_pred))\n\n# Feature importance\nfeature_importance = pd.Series(rf.feature_importances_, index=X.columns)\nfeature_importance.sort_values(ascending=False, inplace=True)\nprint(\"Top 5 important features:\")\nprint(feature_importance.head())"
           },
@@ -476,8 +623,30 @@ const COURSE = {
         {
           "id": "m5-l6",
           "title": "Support Vector Machines",
-          "concept": "A Support Vector Machine (SVM) finds the hyperplane that separates classes with the maximum margin, the largest possible distance to the nearest points of each class, called support vectors. Kernel functions let SVM create non-linear decision boundaries.",
+          "concept": [
+            "A Support Vector Machine (SVM) finds the hyperplane that separates classes with the maximum margin, the largest possible distance to the nearest points of each class. Those nearest points are called support vectors, since they alone determine where the boundary sits. Unlike tree-based models, which create axis-aligned splits, SVM can build smooth, non-linear boundaries using kernel functions such as linear, polynomial, RBF, or sigmoid.",
+            "For data that is not perfectly separable, a Soft Margin SVM introduces slack variables and a regularization parameter C, which balances a wide margin against tolerating some misclassified points. The gamma parameter (for RBF, polynomial, and sigmoid kernels) controls how far the influence of a single training point reaches."
+          ],
           "example": "Separating two wine quality classes using a boundary that maximizes the gap between the closest wines of each class, rather than just any boundary that happens to separate them.",
+          "notes": [
+            {
+              "heading": "Key Parameters",
+              "items": [
+                "C: trade-off between a wide margin and fewer misclassified training points",
+                "kernel: linear, rbf, poly, or sigmoid",
+                "gamma: how far a single training example's influence reaches (rbf, poly, sigmoid)",
+                "degree: degree of the polynomial kernel, when used"
+              ]
+            },
+            {
+              "heading": "Choosing Between SVM and Tree Models",
+              "items": [
+                "Use tree models for large datasets (over 10,000 samples), when feature interpretability matters, when data has missing values, or when you want to avoid feature scaling",
+                "Use SVM for small to medium datasets with complex non-linear patterns, when feature scaling is feasible, and when accuracy matters more than training speed",
+                "For small datasets with complex patterns, SVM often outperforms tree models; for large tabular datasets, tree models usually win. Benchmarking both is standard practice."
+              ]
+            }
+          ],
           "code": {
             "python": "# Import libraries\nfrom sklearn.svm import SVC\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.metrics import accuracy_score, classification_report\nimport pandas as pd\n\n# Load dataset\ndata = pd.read_csv('winequality-red.csv')\nX = data.drop('quality', axis=1)\ny = data['quality']\n\n# Convert to binary classification (low vs high quality)\ny = (y >= 6).astype(int)\n\n# Split data\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)\n\n# Scale features (important for SVM!)\nscaler = StandardScaler()\nX_train_scaled = scaler.fit_transform(X_train)\nX_test_scaled = scaler.transform(X_test)\n\n# Create and train model\nsvm_model = SVC(\n    kernel='rbf',        # Kernel type\n    C=1.0,              # Regularization parameter\n    gamma='scale',      # Kernel coefficient\n    random_state=42\n)\nsvm_model.fit(X_train_scaled, y_train)\n\n# Make predictions\ny_pred = svm_model.predict(X_test_scaled)\n\n# Evaluate model\naccuracy = accuracy_score(y_test, y_pred)\nprint(f\"Accuracy: {accuracy:.2f}\")\nprint(classification_report(y_test, y_pred))\n\n# Feature importance is not directly available in SVM\n# But you can use permutation importance or SHAP values"
           },
@@ -500,8 +669,31 @@ const COURSE = {
         {
           "id": "m6-l1",
           "title": "XGBoost",
-          "concept": "XGBoost (Extreme Gradient Boosting) builds Decision Trees sequentially, where each new tree corrects the errors made by the trees before it. This boosting approach often produces higher accuracy than the bagging approach used by Random Forest.",
+          "concept": [
+            "XGBoost (Extreme Gradient Boosting) is an optimized gradient boosting implementation built for speed and performance on tabular data. Unlike Random Forest, which builds trees independently in parallel, XGBoost builds trees sequentially: it starts with a simple prediction (such as the average target value), computes the residual errors, then trains a new tree specifically to predict those residuals. Each new tree's output is added to the running prediction, scaled by a learning rate, and the process repeats for a set number of rounds.",
+            "XGBoost minimizes a regularized objective function that combines a loss term with a penalty on model complexity (the number of leaves and the size of leaf weights), which helps control overfitting as more trees are added."
+          ],
           "example": "The first tree makes an initial prediction. The second tree is trained specifically on the errors (residuals) of the first. Each following tree keeps correcting the combined prediction from all previous trees.",
+          "notes": [
+            {
+              "heading": "Key Parameters",
+              "items": [
+                "learning_rate: shrinks each tree's contribution, typically 0.01 to 0.3",
+                "n_estimators: number of boosting rounds, typically 100 to 1000",
+                "max_depth: maximum depth per tree, typically 3 to 10",
+                "subsample: fraction of rows used per tree, 0.5 to 1.0",
+                "colsample_bytree: fraction of features used per tree, 0.5 to 1.0"
+              ]
+            },
+            {
+              "heading": "Choosing Between XGBoost and Random Forest",
+              "items": [
+                "Use Random Forest for a quick, robust baseline, when interpretability matters, or when hyperparameter tuning time is limited",
+                "Use XGBoost when maximizing predictive accuracy is the priority and there is time to tune hyperparameters",
+                "Trying both and comparing results is standard practice; some winning solutions combine both in a final ensemble"
+              ]
+            }
+          ],
           "code": {
             "python": "# Import libraries\nimport xgboost as xgb\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.metrics import accuracy_score, classification_report\nimport pandas as pd\n\n# Load dataset\ndata = pd.read_csv('winequality-red.csv')\nX = data.drop('quality', axis=1)\ny = data['quality']\n\n# Convert to binary classification (low vs high quality)\ny = (y >= 6).astype(int)\n\n# Split data\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)\n\n# Create and train model\nxgb_model = xgb.XGBClassifier(\n    n_estimators=100,      # Number of trees\n    learning_rate=0.1,     # Learning rate (eta)\n    max_depth=6,           # Maximum depth of trees\n    subsample=0.8,         # Fraction of samples per tree\n    colsample_bytree=0.8,  # Fraction of features per tree\n    random_state=42\n)\nxgb_model.fit(X_train, y_train)\n\n# Make predictions\ny_pred = xgb_model.predict(X_test)\n\n# Evaluate model\naccuracy = accuracy_score(y_test, y_pred)\nprint(f\"Accuracy: {accuracy:.2f}\")\nprint(classification_report(y_test, y_pred))\n\n# Feature importance\nfeature_importance = pd.Series(xgb_model.feature_importances_, index=X.columns)\nfeature_importance.sort_values(ascending=False, inplace=True)\nprint(\"Top 5 important features:\")\nprint(feature_importance.head())"
           },
@@ -516,8 +708,31 @@ const COURSE = {
         {
           "id": "m6-l2",
           "title": "LightGBM",
-          "concept": "LightGBM is a gradient boosting framework built for speed on large datasets. It grows trees leaf-wise (expanding the leaf that reduces loss the most) rather than level-wise, and uses histogram-based binning to evaluate splits faster than checking every possible value.",
+          "concept": [
+            "LightGBM is a gradient boosting framework, developed by Microsoft, built for speed and low memory use on large datasets. Where XGBoost grows trees level-wise (expanding an entire layer before going deeper), LightGBM grows trees leaf-wise: it always splits whichever single leaf reduces loss the most, which can reach lower loss faster but risks overfitting on small datasets.",
+            "LightGBM speeds up training with histogram-based splitting, binning continuous feature values into discrete buckets instead of checking every possible split point. It also uses Gradient-Based One-Side Sampling (GOSS), which keeps all high-gradient (high-error) instances and only samples a subset of low-gradient instances, and Exclusive Feature Bundling (EFB), which merges features that are rarely non-zero at the same time to reduce dimensionality."
+          ],
           "example": "On a dataset with millions of rows, LightGBM's histogram binning and leaf-wise growth can train substantially faster than a level-wise gradient boosting approach, while reaching comparable accuracy.",
+          "notes": [
+            {
+              "heading": "Key Parameters",
+              "items": [
+                "num_leaves: maximum leaves per tree, default 31",
+                "max_depth: maximum tree depth, -1 means no limit",
+                "learning_rate: shrinkage rate, typically 0.01 to 0.3",
+                "min_data_in_leaf: minimum records per leaf, controls overfitting",
+                "feature_fraction / bagging_fraction: random subset of features or data used per iteration"
+              ]
+            },
+            {
+              "heading": "Choosing Between LightGBM and XGBoost",
+              "items": [
+                "Use XGBoost for smaller datasets (under roughly 100,000 rows), when robustness against overfitting matters more than raw speed",
+                "Use LightGBM for large datasets (over roughly 100,000 rows), when training speed and memory are constraints, or when categorical features are present",
+                "LightGBM often wins on large datasets; XGBoost can perform better on smaller ones. Benchmarking both is standard practice."
+              ]
+            }
+          ],
           "code": {
             "python": "# Import libraries\nimport lightgbm as lgb\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.metrics import accuracy_score, classification_report\nimport pandas as pd\n\n# Load dataset\ndata = pd.read_csv('winequality-red.csv')\nX = data.drop('quality', axis=1)\ny = data['quality']\n\n# Convert to binary classification (low vs high quality)\ny = (y >= 6).astype(int)\n\n# Split data\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)\n\n# Create dataset for LightGBM\ntrain_data = lgb.Dataset(X_train, label=y_train)\ntest_data = lgb.Dataset(X_test, label=y_test, reference=train_data)\n\n# Set parameters\nparams = {\n    'objective': 'binary',\n    'metric': 'binary_logloss',\n    'boosting_type': 'gbdt',\n    'num_leaves': 31,\n    'learning_rate': 0.1,\n    'feature_fraction': 0.8,\n    'bagging_fraction': 0.8,\n    'bagging_freq': 5,\n    'verbose': -1\n}\n\n# Train model\nlgb_model = lgb.train(\n    params,\n    train_data,\n    valid_sets=[test_data],\n    num_boost_round=100,\n    callbacks=[lgb.early_stopping(stopping_rounds=10)]\n)\n\n# Make predictions\ny_pred_proba = lgb_model.predict(X_test)\ny_pred = (y_pred_proba > 0.5).astype(int)\n\n# Evaluate model\naccuracy = accuracy_score(y_test, y_pred)\nprint(f\"Accuracy: {accuracy:.2f}\")\nprint(classification_report(y_test, y_pred))\n\n# Feature importance\nlgb.plot_importance(lgb_model, max_num_features=10)"
           },
@@ -532,8 +747,30 @@ const COURSE = {
         {
           "id": "m6-l3",
           "title": "Neural Networks",
-          "concept": "A Neural Network is made of layers of connected units (neurons). Data passes through an input layer, one or more hidden layers that apply weights and activation functions, and an output layer that produces the prediction. The network learns by backpropagation: comparing predictions to actual values and adjusting weights via gradient descent.",
+          "concept": [
+            "A Neural Network is a model inspired by the brain, made of layers of connected artificial neurons. Raw data enters through an input layer, where each neuron represents one feature. It passes through one or more hidden layers, where neurons apply weights, biases, and an activation function to transform the input, then reaches an output layer that produces the final prediction. Unlike traditional algorithms that rely on hand-crafted features, a neural network learns its own features from raw data across its layers.",
+            "Training happens through forward propagation (computing predictions layer by layer) and backpropagation: the network compares its prediction to the actual label using a loss function (such as binary cross-entropy for classification), computes how much each weight contributed to that error using the chain rule, and updates every weight with gradient descent, controlled by a learning rate."
+          ],
           "example": "A network for fraud detection takes transaction features into its input layer, processes them through hidden layers that learn combinations of features, and outputs a probability of fraud.",
+          "notes": [
+            {
+              "heading": "Key Components",
+              "items": [
+                "Activation functions: introduce non-linearity, such as ReLU, Sigmoid, or Tanh",
+                "Loss functions: measure prediction error, such as cross-entropy or MSE",
+                "Optimizers: update weights, such as SGD, Adam, or RMSprop",
+                "Regularization: prevents overfitting, such as Dropout, L1/L2 penalties, or Batch Normalization"
+              ]
+            },
+            {
+              "heading": "Choosing Between Neural Networks and Traditional ML",
+              "items": [
+                "Use traditional ML (Logistic Regression, Random Forest, XGBoost) for small to medium datasets, tabular data, when interpretability matters, or when computational resources are limited",
+                "Use Neural Networks for large datasets, complex unstructured data such as images, text, or audio, or when feature engineering by hand is difficult",
+                "Starting with a traditional algorithm before trying a neural network is standard practice, since traditional models are often sufficient and easier to interpret"
+              ]
+            }
+          ],
           "code": {
             "python": "# Import libraries\nimport tensorflow as tf\nfrom tensorflow.keras.models import Sequential\nfrom tensorflow.keras.layers import Dense, Dropout\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.metrics import classification_report, confusion_matrix\nimport pandas as pd\nimport numpy as np\n\n# Load dataset\ndata = pd.read_csv('creditcard.csv')\nX = data.drop('Class', axis=1)\ny = data['Class']\n\n# Handle imbalanced data with SMOTE or class weights\nfrom sklearn.utils.class_weight import compute_class_weight\nclass_weights = compute_class_weight('balanced', classes=np.unique(y), y=y)\nclass_weight_dict = dict(enumerate(class_weights))\n\n# Split data\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)\n\n# Scale features\nscaler = StandardScaler()\nX_train_scaled = scaler.fit_transform(X_train)\nX_test_scaled = scaler.transform(X_test)\n\n# Build neural network\nmodel = Sequential([\n    Dense(64, activation='relu', input_shape=(X_train_scaled.shape[1],)),\n    Dropout(0.3),\n    Dense(32, activation='relu'),\n    Dropout(0.3),\n    Dense(16, activation='relu'),\n    Dense(1, activation='sigmoid')  # Binary classification\n])\n\n# Compile model\nmodel.compile(\n    optimizer='adam',\n    loss='binary_crossentropy',\n    metrics=['accuracy', 'precision', 'recall']\n)\n\n# Train model\nhistory = model.fit(\n    X_train_scaled, y_train,\n    epochs=20,\n    batch_size=32,\n    validation_split=0.2,\n    class_weight=class_weight_dict,\n    verbose=1\n)\n\n# Make predictions\ny_pred_proba = model.predict(X_test_scaled)\ny_pred = (y_pred_proba > 0.5).astype(int)\n\n# Evaluate model\nprint(classification_report(y_test, y_pred))\nprint(\"Confusion Matrix:\")\nprint(confusion_matrix(y_test, y_pred))"
           },

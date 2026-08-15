@@ -118,6 +118,25 @@ function aiHelpCallout(label) {
     </div>`;
 }
 
+function paragraphs(value) {
+  if (!value) return "";
+  const arr = Array.isArray(value) ? value : [value];
+  return arr.map((p) => `<p>${escapeHtml(p)}</p>`).join("");
+}
+
+function notesBlocks(notes) {
+  if (!notes || !notes.length) return "";
+  return notes
+    .map(
+      (n) => `
+    <section class="lesson-section">
+      <h2>${escapeHtml(n.heading)}</h2>
+      <ul class="plain-list">${n.items.map((i) => `<li>${escapeHtml(i)}</li>`).join("")}</ul>
+    </section>`
+    )
+    .join("");
+}
+
 /* ---------- Practice block (task / hint / solution reveal) ---------- */
 function practiceBlock(practice, itemId) {
   if (!practice) return "";
@@ -235,13 +254,15 @@ function renderLessonView(mod, lesson) {
 
     <section class="lesson-section">
       <h2>Concept</h2>
-      <p>${escapeHtml(lesson.concept)}</p>
+      ${paragraphs(lesson.concept)}
     </section>
 
     <section class="lesson-section">
       <h2>Example</h2>
-      <p>${escapeHtml(lesson.example)}</p>
+      ${paragraphs(lesson.example)}
     </section>
+
+    ${notesBlocks(lesson.notes)}
 
     ${
       lesson.code
