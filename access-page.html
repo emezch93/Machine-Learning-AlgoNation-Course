@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Course Access | CodeVent Digital</title>
+<meta name="description" content="Get your CodeVent Machine Learning Course access token.">
+<link rel="icon" type="image/png" href="codevent-logo.PNG">
+
+<style>
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #f5f7fa;
+  color: #111827;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.container {
+  width: 100%;
+  max-width: 480px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.brand {
+  margin-bottom: 20px;
+}
+
+.brand-name {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #6b7280;
+}
+
+h1 {
+  margin: 8px 0 20px;
+  font-size: 26px;
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  margin: 4px auto 20px;
+  border-radius: 50%;
+  border: 3px solid #e5e7eb;
+  border-top-color: #111827;
+  animation: spin 0.8s linear infinite;
+}
+.spinner.hidden { display: none; }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.status {
+  padding: 14px;
+  border-radius: 10px;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.status.success {
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+.status.error {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.token-section {
+  display: none;
+  margin-top: 20px;
+}
+.token-section.visible {
+  display: block;
+}
+
+.token-label {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 8px;
+}
+
+.token {
+  background: #111827;
+  color: #ffffff;
+  padding: 16px;
+  border-radius: 10px;
+  font-family: monospace;
+  font-size: 13px;
+  word-break: break-all;
+  margin-bottom: 12px;
+}
+
+.token-note {
+  font-size: 13px;
+  color: #4b5563;
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+button, .course-link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 13px 16px;
+  border: 0;
+  border-radius: 9px;
+  background: #111827;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  margin-top: 8px;
+  font-size: 15px;
+}
+
+.secondary {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<main class="container">
+
+  <div class="brand">
+    <span class="brand-name">CodeVent Digital</span>
+  </div>
+
+  <div class="label">Course Access</div>
+  <h1>Machine Learning</h1>
+
+  <div id="spinner" class="spinner"></div>
+
+  <div id="status" class="status">Checking payment...</div>
+
+  <section id="tokenSection" class="token-section">
+    <div class="token-label">Your Machine Learning Course access token</div>
+    <div id="token" class="token"></div>
+    <button id="copyButton" type="button" class="secondary">Copy Token</button>
+    <p class="token-note">Keep this token safe. Continue to the course, then enter this token on the unlock screen to access your lessons.</p>
+    <a class="course-link" href="https://emezch93.github.io/codevent-machine-learning-course/" target="_self">
+      Continue to Course
+    </a>
+  </section>
+
+</main>
+
+<script>
+
+const WORKER_URL =
+  "https://codevent-machine-learning-course.emezch93.workers.dev";
+
+const statusElement = document.getElementById("status");
+const spinnerElement = document.getElementById("spinner");
+const tokenSection = document.getElementById("tokenSection");
+const tokenElement = document.getElementById("token");
+const copyButton = document.getElementById("copyButton");
+
+function setStatus(message, type = "") {
+  statusElement.textContent = message;
+  statusElement.className = "status";
+  if (type) {
+    statusElement.classList.add(type);
+  }
+}
+
+function stopSpinner() {
+  spinnerElement.classList.add("hidden");
+}
+
+function showToken(token) {
+  tokenElement.textContent = token;
+  tokenSection.classList.add("visible");
+}
+
+copyButton.addEventListener("click", async () => {
+  const token = tokenElement.textContent;
+  try {
+    await navigator.clipboard.writeText(token);
+    copyButton.textContent = "Copied";
+    setTimeout(() => { copyButton.textContent = "Copy Token"; }, 2000);
+  } catch {
+    setStatus("Unable to copy automatically. Select and copy the token manually.", "error");
+  }
+});
+
+async function verifyPayment() {
+  const params = new URLSearchParams(window.location.search);
+  const reference = params.get("reference");
+
+  if (!reference) {
+    stopSpinner();
+    setStatus(
+      "No payment reference was found. If you already completed payment, check your confirmation email for your access token.",
+      "error"
+    );
+    return;
+  }
+
+  setStatus("Verifying your payment...");
+
+  let response;
+  try {
+    response = await fetch(
+      WORKER_URL + "/verify-payment?reference=" + encodeURIComponent(reference),
+      {
+        method: "GET",
+        headers: { "Accept": "application/json" },
+        cache: "no-store"
+      }
+    );
+  } catch (error) {
+    stopSpinner();
+    setStatus("Unable to reach the verification service. Please check your connection and reload this page.", "error");
+    return;
+  }
+
+  let data;
+  try {
+    data = await response.json();
+  } catch (error) {
+    stopSpinner();
+    setStatus("Received an unexpected response while verifying payment. Please reload this page.", "error");
+    return;
+  }
+
+  if (!response.ok || !data.authorized || !data.token) {
+    stopSpinner();
+    setStatus(data.message || "Payment could not be verified.", "error");
+    return;
+  }
+
+  stopSpinner();
+  setStatus("Payment verified.", "success");
+  showToken(data.token);
+}
+
+verifyPayment();
+
+</script>
+
+</body>
+</html>
