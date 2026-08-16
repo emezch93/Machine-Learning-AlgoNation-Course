@@ -4,6 +4,141 @@ const STORAGE_KEY = "codevent_ml_progress_v1";
 const LAST_KEY = "codevent_ml_last_v1";
 const SETUP_DISMISS_KEY = "codevent_ml_setup_dismissed_v1";
 
+/* ---------- Course access authorization ---------- */
+const ACCESS_TOKEN_KEY = "codevent_machine_learning_access_token";
+const WORKER_URL = "https://codevent-machine-learning-course.emezch93.workers.dev";
+
+function renderAuthState(html) {
+  const content = document.getElementById("content");
+  const sidebar = document.getElementById("sidebar");
+  if (sidebar) sidebar.innerHTML = "";
+  if (content) content.innerHTML = html;
+}
+
+function authLoadingHtml(message) {
+  return `<div class="auth-gate"><p class="auth-gate-message">${message}</p></div>`;
+}
+
+function authErrorHtml(message) {
+  return `
+    <div class="auth-gate">
+      <p class="auth-gate-message">${message}</p>
+      <button type="button" id="auth-retry-btn" class="auth-retry-btn">Retry</button>
+    </div>`;
+}
+
+function lockedScreenHtml(errorMessage) {
+  return `
+    <div class="auth-gate">
+      <div class="auth-gate-card">
+        <div class="auth-gate-brand">CodeVent Digital</div>
+        <h1 class="auth-gate-title">Course Locked</h1>
+        <p class="auth-gate-message">Enter your access token to unlock CodeVent Machine Learning.</p>
+        <form id="unlock-form" class="auth-gate-form" autocomplete="off">
+          <input type="text" id="unlock-token-input" class="auth-gate-input" placeholder="Access Token" autocomplete="off">
+          <button type="submit" class="auth-gate-unlock-btn">Unlock Course</button>
+        </form>
+        <div id="unlock-error" class="auth-gate-error ${errorMessage ? "" : "hidden"}">${errorMessage ? escapeHtml(errorMessage) : ""}</div>
+        <a class="auth-gate-pay-link" href="contact.html" target="_self">Don't have a token? Contact us for course access</a>
+      </div>
+    </div>`;
+}
+
+async function verifyStoredAccess(token) {
+  let response;
+  try {
+    response = await fetch(WORKER_URL + "/verify-access", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({ token }),
+      cache: "no-store"
+    });
+  } catch (err) {
+    return { networkError: true };
+  }
+
+  let data;
+  try {
+    data = await response.json();
+  } catch (err) {
+    return { networkError: true };
+  }
+
+  return { networkError: false, authorized: !!data.authorized };
+}
+
+function showLockedScreen(errorMessage) {
+  renderAuthState(lockedScreenHtml(errorMessage));
+  const form = document.getElementById("unlock-form");
+  if (!form) return;
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const input = document.getElementById("unlock-token-input");
+    const errorEl = document.getElementById("unlock-error");
+    const submitBtn = form.querySelector("button[type=submit]");
+    const token = input.value.trim();
+
+    if (!token) {
+      errorEl.textContent = "Enter your access token.";
+      errorEl.classList.remove("hidden");
+      return;
+    }
+
+    errorEl.classList.add("hidden");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Verifying...";
+
+    const result = await verifyStoredAccess(token);
+
+    if (result.networkError) {
+      errorEl.textContent = "Unable to verify right now. Check your connection and try again.";
+      errorEl.classList.remove("hidden");
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Unlock Course";
+      return;
+    }
+
+    if (!result.authorized) {
+      errorEl.textContent = "That access token is invalid or expired.";
+      errorEl.classList.remove("hidden");
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Unlock Course";
+      return;
+    }
+
+    localStorage.setItem(ACCESS_TOKEN_KEY, token);
+    startApp();
+  });
+}
+
+async function initAuth() {
+  const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+
+  if (!token) {
+    showLockedScreen();
+    return;
+  }
+
+  renderAuthState(authLoadingHtml("Checking your course access..."));
+
+  const result = await verifyStoredAccess(token);
+
+  if (result.networkError) {
+    renderAuthState(authErrorHtml("Unable to verify your course access right now. Check your connection and try again."));
+    const retryBtn = document.getElementById("auth-retry-btn");
+    if (retryBtn) retryBtn.addEventListener("click", initAuth);
+    return;
+  }
+
+  if (!result.authorized) {
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    showLockedScreen("Your previous access token is no longer valid. Enter a valid token to continue.");
+    return;
+  }
+
+  startApp();
+}
+
 /* ---------- Flatten course into a linear sequence for prev/next + progress ---------- */
 const SEQUENCE = [];
 COURSE.modules.forEach((mod) => {
@@ -590,11 +725,16 @@ function attachSidebarHandlers(root) {
 function closeMobileSidebar() {
   document.getElementById("app").classList.remove("sidebar-open");
 }
-document.addEventListener("DOMContentLoaded", () => {
+
+function startApp() {
   const toggle = document.getElementById("menu-toggle");
   toggle.addEventListener("click", () => {
     document.getElementById("app").classList.toggle("sidebar-open");
   });
   document.getElementById("overlay").addEventListener("click", closeMobileSidebar);
   render();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  initAuth();
 });
