@@ -730,3 +730,98 @@ button { font-family: inherit; cursor: pointer; }
   .prev-next { flex-direction: column; }
   .pn-next { text-align: left; }
 }
+/* ============ Course access gate ============ */
+.auth-gate {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+  padding: 32px;
+}
+.auth-gate-message {
+  color: var(--muted);
+  font-size: 14px;
+  max-width: 360px;
+  margin: 0;
+}
+.auth-retry-btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.auth-retry-btn:hover { background: #3f7bef; }
+
+.auth-gate-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px 28px;
+}
+.auth-gate-brand {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.auth-gate-title {
+  font-size: 22px;
+  margin: 0 0 12px;
+}
+.auth-gate-card .auth-gate-message {
+  margin: 0 0 20px;
+}
+.auth-gate-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.auth-gate-input {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 11px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: var(--font-mono);
+}
+.auth-gate-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.auth-gate-unlock-btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 11px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.auth-gate-unlock-btn:hover { background: #3f7bef; }
+.auth-gate-unlock-btn:disabled { opacity: 0.6; cursor: default; }
+.auth-gate-error {
+  color: var(--danger);
+  font-size: 13px;
+  margin-top: 12px;
+}
+.auth-gate-error.hidden { display: none; }
+.auth-gate-pay-link {
+  display: inline-block;
+  margin-top: 20px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.auth-gate-pay-link:hover { color: var(--text); }
+
